@@ -1,0 +1,12 @@
+export { default as Navigation } from './Navigation';
+export { default as HeroSection } from './HeroSection';
+export { default as AboutSection } from './AboutSection';
+export { default as SkillsSection } from './SkillsSection';
+export { default as ProjectsSection } from './ProjectsSection';
+export { default as ExperienceSection } from './ExperienceSection';
+export { default as GallerySection } from './GallerySection';
+export { default as AcademiaSection } from './AcademiaSection';
+export { default as TestimonialSection } from './TestimonialSection';
+export { default as AIPromptSection } from './AIPromptSection';
+export { default as ContactSection } from './ContactSection';
+export { default as FooterSection } from './FooterSection';

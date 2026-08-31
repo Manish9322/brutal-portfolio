@@ -1,7 +1,9 @@
+'use client';
 
 import React from 'react';
+import Link from 'next/link';
 
-const NotFound: React.FC<{ onReset: () => void }> = ({ onReset }) => {
+const NotFound: React.FC = () => {
   const memoryDump = [
     { addr: '0x00404', status: 'NOT_FOUND', payload: 'URI_STUB' },
     { addr: '0x00F1F', status: 'SEG_FAULT', payload: 'ACCENT_ERR' },
@@ -12,7 +14,7 @@ const NotFound: React.FC<{ onReset: () => void }> = ({ onReset }) => {
   return (
     <div className="min-h-screen bg-black text-white p-6 md:p-12 flex items-center justify-center font-heading overflow-hidden relative">
       {/* Background Grid Pattern */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none" 
+      <div className="absolute inset-0 opacity-10 pointer-events-none"
            style={{ backgroundImage: 'linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)', backgroundSize: '40px 40px' }}>
       </div>
 
@@ -55,12 +57,12 @@ const NotFound: React.FC<{ onReset: () => void }> = ({ onReset }) => {
           </div>
 
           <div className="pt-8">
-            <button 
-              onClick={onReset}
-              className="w-full bg-white text-black py-8 text-3xl font-black uppercase tracking-[0.3em] hover:bg-[#FF5F1F] hover:text-white transition-all transform hover:-translate-y-2 active:translate-y-0"
+            <Link
+              href="/"
+              className="block w-full text-center bg-white text-black py-8 text-3xl font-black uppercase tracking-[0.3em] hover:bg-[#FF5F1F] hover:text-white transition-all transform hover:-translate-y-2 active:translate-y-0"
             >
               REBOOT_SYSTEM
-            </button>
+            </Link>
           </div>
         </div>
 

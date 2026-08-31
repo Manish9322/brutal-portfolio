@@ -1,18 +1,18 @@
+'use client';
 
 import React from 'react';
-import { usePortfolio } from '../../context/PortfolioContext';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useAdminAuth } from '@/lib/admin-auth';
+import { useGetMessagesQuery } from '@/services/api';
+import type { ContactMessage } from '@/types';
 
-interface AdminLayoutProps {
-  children: React.ReactNode;
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
-  onExit: () => void;
-}
+const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { logout } = useAdminAuth();
+  const pathname = usePathname();
+  const { data: messages = [] } = useGetMessagesQuery();
+  const unreadMessages = (messages as ContactMessage[]).filter((m) => !m.read).length;
 
-const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab, setActiveTab, onExit }) => {
-  const { logout, data } = usePortfolio();
-  const unreadMessages = data.messages.filter(m => !m.read).length;
-  
   const menuItems = [
     { id: 'dashboard', label: 'DASHBOARD' },
     { id: 'analytics', label: 'ANALYTICS' },
@@ -35,27 +35,31 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab, setActiv
       <aside className="w-full md:w-80 border-r-4 border-black flex flex-col sticky top-0 h-screen overflow-y-auto z-50">
         <div className="p-8 border-b-4 border-black bg-black text-white flex justify-between items-center">
           <h1 className="font-heading font-black text-2xl uppercase tracking-tighter">CMS.V1</h1>
-          <button onClick={onExit} className="text-xs font-bold border border-white px-2 py-1 hover:bg-[#FF5F1F]">EXIT</button>
+          <Link href="/" className="text-xs font-bold border border-white px-2 py-1 hover:bg-[#FF5F1F]">EXIT</Link>
         </div>
         <nav className="flex-1 flex flex-col divide-y-4 divide-black">
-          {menuItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={`p-6 text-left font-black tracking-widest transition-colors flex justify-between items-center ${
-                activeTab === item.id ? 'bg-[#FF5F1F] text-white' : 'hover:bg-gray-100'
-              }`}
-            >
-              {item.label}
-              {item.badge && (
-                <span className={`px-2 py-0.5 text-[10px] font-black border-2 ${activeTab === item.id ? 'border-white bg-white text-[#FF5F1F]' : 'border-black bg-black text-white'}`}>
-                  {item.badge}
-                </span>
-              )}
-            </button>
-          ))}
+          {menuItems.map((item) => {
+            const href = `/admin/${item.id}`;
+            const isActive = pathname === href;
+            return (
+              <Link
+                key={item.id}
+                href={href}
+                className={`p-6 text-left font-black tracking-widest transition-colors flex justify-between items-center ${
+                  isActive ? 'bg-[#FF5F1F] text-white' : 'hover:bg-gray-100'
+                }`}
+              >
+                {item.label}
+                {item.badge && (
+                  <span className={`px-2 py-0.5 text-[10px] font-black border-2 ${isActive ? 'border-white bg-white text-[#FF5F1F]' : 'border-black bg-black text-white'}`}>
+                    {item.badge}
+                  </span>
+                )}
+              </Link>
+            );
+          })}
         </nav>
-        <button 
+        <button
           onClick={logout}
           className="p-8 bg-gray-200 font-black border-t-4 border-black hover:bg-black hover:text-white transition-colors uppercase tracking-widest"
         >

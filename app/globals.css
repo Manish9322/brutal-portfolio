@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: var(--font-space-grotesk), sans-serif;
+  background-color: #ffffff;
+  color: #000000;
+  cursor: crosshair;
+}
+
+.font-heading {
+  font-family: var(--font-syncopate), sans-serif;
+  letter-spacing: -0.05em;
+}
+
+/* Custom selection color */
+::selection {
+  background: #FF5F1F;
+  color: white;
+}
+
+/* Hide scrollbar but keep functionality */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #FF5F1F;
+  border: 2px solid #000;
+}
+
+/* Footer marquee (moved out of the inline <style> tag in FooterSection) */
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: inline-block;
+  animation: marquee 30s linear infinite;
+}
+
+/* The nav is sticky, so in-page anchor targets (#work, #skills, #contact, ...)
+   need to stop below it - otherwise the section heading lands underneath. */
+section[id] {
+  scroll-margin-top: 6rem;
+}

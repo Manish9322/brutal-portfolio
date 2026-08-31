@@ -1,5 +1,11 @@
+export interface SocialLink {
+  _id: string;
+  platform: string;
+  url: string;
+}
 
 export interface Profile {
+  _id?: string;
   name: string;
   lastName: string;
   manifestoLine: string;
@@ -8,17 +14,19 @@ export interface Profile {
   discipline: string;
   email: string;
   telegram: string;
+  /** Controls whether the Telegram handle is shown in the contact section. */
+  telegramVisible: boolean;
   socialLinks: SocialLink[];
 }
 
-export interface SocialLink {
-  id: string;
-  platform: string;
-  url: string;
+export interface About {
+  _id?: string;
+  manifestoHeading: string;
+  description: string;
 }
 
 export interface ContactMessage {
-  id: string;
+  _id: string;
   name: string;
   email: string;
   message: string;
@@ -26,8 +34,14 @@ export interface ContactMessage {
   read: boolean;
 }
 
+export interface Screenshot {
+  _id: string;
+  url: string;
+  caption: string;
+}
+
 export interface Project {
-  id: string;
+  _id: string;
   title: string;
   category: string;
   year: string;
@@ -36,33 +50,82 @@ export interface Project {
   image: string;
   link: string;
   visible: boolean;
+  featured: boolean;
+  order: number;
+
+  // Detail-page content
+  longDescription: string;
+  challenges: string[];
+  solutions: string[];
+  screenshots: Screenshot[];
+  role: string;
+  team: string;
+  timeline: string;
+  githubUrl: string;
+  liveUrl: string;
+}
+
+export interface RelatedProject {
+  _id: string;
+  name: string;
+  description: string;
 }
 
 export interface Experience {
-  id: string;
+  _id: string;
   role: string;
   company: string;
   period: string;
   description: string;
   visible: boolean;
+  order: number;
+
+  // Detail-page content
+  location: string;
+  startDate: string;
+  endDate: string;
+  industry: string;
+  teamSize: string;
+  website: string;
+  technologies: string[];
+  achievements: string[];
+  responsibilities: string[];
+  projects: RelatedProject[];
 }
 
+export type EducationType = 'degree' | 'certification' | 'course';
+
 export interface Education {
-  id: string;
+  _id: string;
   degree: string;
   institution: string;
   year: string;
   description: string;
   visible: boolean;
+  order: number;
+
+  // Timeline / certificate detail
+  type: EducationType;
+  field: string;
+  period: string;
+  startDate: string;
+  endDate: string;
+  location: string;
+  gpa: string;
+  achievements: string[];
+  website: string;
+  certificateUrl: string;
 }
 
 export interface Skill {
+  _id: string;
   category: string;
   items: string[];
+  order: number;
 }
 
 export interface Blog {
-  id: string;
+  _id: string;
   title: string;
   excerpt: string;
   date: string;
@@ -72,7 +135,7 @@ export interface Blog {
 }
 
 export interface MediaAsset {
-  id: string;
+  _id: string;
   url: string;
   label: string;
   type: 'image' | 'video';
@@ -80,15 +143,19 @@ export interface MediaAsset {
 }
 
 export interface GalleryItem {
-  id: string;
+  _id: string;
   url: string;
   caption: string;
   order: number;
   visible: boolean;
+
+  // Grouping for the /gallery page
+  category: string;
+  description: string;
 }
 
 export interface Testimonial {
-  id: string;
+  _id: string;
   quote: string;
   author: string;
   role: string;
@@ -99,6 +166,7 @@ export interface Testimonial {
 }
 
 export interface SEOConfig {
+  _id?: string;
   metaTitle: string;
   metaDescription: string;
   keywords: string[];
@@ -106,32 +174,14 @@ export interface SEOConfig {
 }
 
 export interface FooterResource {
-  id: string;
+  _id: string;
   label: string;
   url: string;
 }
 
-export interface SystemInfo {
+export interface Settings {
+  _id?: string;
   version: string;
   marqueeText: string;
-}
-
-export interface PortfolioData {
-  profile: Profile;
-  about: {
-    manifestoHeading: string;
-    description: string;
-  };
-  skills: Skill[];
-  projects: Project[];
-  experiences: Experience[];
-  education: Education[];
-  blogs: Blog[];
-  media: MediaAsset[];
-  gallery: GalleryItem[];
-  testimonials: Testimonial[];
-  messages: ContactMessage[];
-  seo: SEOConfig;
   footerResources: FooterResource[];
-  systemInfo: SystemInfo;
 }

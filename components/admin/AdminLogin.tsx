@@ -1,11 +1,12 @@
+'use client';
 
 import React, { useState } from 'react';
-import { usePortfolio } from '../../context/PortfolioContext';
+import { useAdminAuth } from '@/lib/admin-auth';
 
 const AdminLogin: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(false);
-  const { login } = usePortfolio();
+  const { login } = useAdminAuth();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,8 +27,8 @@ const AdminLogin: React.FC = () => {
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="space-y-2">
             <label className="text-xs font-black uppercase tracking-widest">ENCRYPTION KEY</label>
-            <input 
-              type="password" 
+            <input
+              type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
@@ -35,7 +36,7 @@ const AdminLogin: React.FC = () => {
             />
           </div>
           {error && <p className="text-[#FF5F1F] font-black uppercase text-sm animate-pulse">INVALID CREDENTIALS. SYSTEM LOCKDOWN IMMINENT.</p>}
-          <button 
+          <button
             type="submit"
             className="w-full bg-black text-white py-6 text-xl font-black uppercase tracking-widest hover:bg-[#FF5F1F] transition-colors"
           >

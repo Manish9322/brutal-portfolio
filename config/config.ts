@@ -1,0 +1,10 @@
+export const MONGODB_URL = process.env.MONGODB_URL;
+export const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+export const EMAIL_USER = process.env.EMAIL_USER;
+export const EMAIL_PASS = process.env.EMAIL_PASS;
+export const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
+export const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+export const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME;
+export const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY;
+export const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET;
+export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
