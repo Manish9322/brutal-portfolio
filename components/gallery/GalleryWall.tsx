@@ -2,10 +2,12 @@
 
 import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
+import TopBar, { TOP_BAR_OFFSET } from '@/components/TopBar';
 import { useGetGalleryQuery } from '@/services/api';
 import { sortGallery, groupByCategory, tileSpan } from '@/lib/gallery';
 import Lightbox from './Lightbox';
 import type { GalleryItem } from '@/types';
+import { cdn, cdnSrcSet } from '@/lib/image-url';
 
 const ALL = 'ALL';
 
@@ -34,17 +36,21 @@ const GalleryWall: React.FC = () => {
 
   return (
     <section className="border-b-4 border-black min-h-screen bg-white">
-      <header className="border-b-4 border-black p-8 md:p-12 sticky top-0 bg-white z-40 flex justify-between items-center">
-        <Link
-          href="/"
-          className="font-black uppercase tracking-widest hover:text-[#FF5F1F] transition-colors border-b-4 border-black"
-        >
-          [ ← EXIT_TO_SYSTEM_ROOT ]
-        </Link>
-        <span className="text-[10px] font-black uppercase tracking-[0.5em] opacity-30 hidden md:block">
-          ARCHIVE_MODE // FRAME_BUFFER
-        </span>
-      </header>
+      <TopBar
+        left={
+          <Link
+            href="/"
+            className="text-xs sm:text-sm font-black uppercase tracking-widest hover:text-[#FF5F1F] transition-colors border-b-4 border-black"
+          >
+            [ ← EXIT ]
+          </Link>
+        }
+        right={
+          <span className="text-[10px] font-black uppercase tracking-[0.4em] opacity-30 hidden md:block">
+            ARCHIVE_MODE // FRAME_BUFFER
+          </span>
+        }
+      />
 
       <div className="p-8 md:p-24 border-b-4 border-black bg-black text-white relative overflow-hidden">
         <div
@@ -64,7 +70,7 @@ const GalleryWall: React.FC = () => {
       </div>
 
       {albums.length > 1 && (
-        <div className="border-b-4 border-black flex flex-wrap divide-x-4 divide-black sticky top-[92px] md:top-[108px] bg-white z-30">
+        <div className={`border-b-4 border-black flex flex-wrap divide-x-4 divide-black sticky ${TOP_BAR_OFFSET} bg-white z-30`}>
           {[{ category: ALL, items: visible }, ...albums].map((album) => (
             <button
               key={album.category}
@@ -108,9 +114,11 @@ const GalleryWall: React.FC = () => {
                 aria-label={`Open ${item.caption}`}
               >
                 <img
-                  src={item.url}
+                  src={cdn(item.url, { width: tileSpan(i) ? 800 : 400 })}
+                  srcSet={cdnSrcSet(item.url, tileSpan(i) ? 800 : 400)}
                   alt={item.caption}
                   loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-cover filter grayscale group-hover:grayscale-0 transition-all duration-500 scale-105 group-hover:scale-100"
                 />
                 <div className="absolute inset-0 bg-[#FF5F1F] opacity-0 group-hover:opacity-25 transition-opacity" />

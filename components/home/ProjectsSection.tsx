@@ -43,6 +43,8 @@ const ProjectsSection: React.FC = () => {
                  src={project.image}
                  alt={project.title}
                  label={project.title}
+                 width={900}
+                 priority={idx === 0}
                  className="w-full h-full object-cover filter grayscale hover:grayscale-0 transition-all duration-500 scale-105 group-hover:scale-100"
                />
                <div className="absolute inset-0 bg-[#FF5F1F] opacity-0 group-hover:opacity-20 transition-opacity pointer-events-none"></div>

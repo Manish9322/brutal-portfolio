@@ -148,5 +148,10 @@ only `GET` and `PUT`.
 | `/admin`            | redirects to `/admin/dashboard`          |
 | `/admin/<section>`  | CMS section (password: `admin123`)       |
 
-The admin gate in `lib/admin-auth.tsx` is a client-side check only. Replace it
-with a real session before putting this on a public host.
+The admin password comes from `ADMIN_PASSWORD` and is compared on the server
+(`app/api/admin/login`), so it is never included in the client bundle. There is
+no fallback: without that variable set, sign-in fails.
+
+The session itself is still just a localStorage flag and the API routes are
+unauthenticated, so this gates the UI only. Replace it with a real session
+before putting this on a public host.

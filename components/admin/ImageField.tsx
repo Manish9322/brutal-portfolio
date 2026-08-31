@@ -3,6 +3,7 @@
 import React, { useId, useRef, useState } from 'react';
 import { useImageUpload } from '@/hooks/use-image-upload';
 import type { UploadModule } from '@/lib/cloudinary';
+import { cdn } from '@/lib/image-url';
 
 interface ImageFieldProps {
   label: string;
@@ -108,9 +109,9 @@ const ImageField: React.FC<ImageFieldProps> = ({
       />
 
       {value ? (
-        <div className="border-4 border-black">
-          <div className={`relative ${aspectClass} bg-gray-100 overflow-hidden border-b-4 border-black`}>
-            <img src={value} alt={label} className="w-full h-full object-cover" />
+        <div className="border-2 border-black">
+          <div className={`relative ${aspectClass} bg-gray-100 overflow-hidden border-b-2 border-black`}>
+            <img src={cdn(value, { width: 800 })} alt={label} decoding="async" className="w-full h-full object-cover" />
             {isUploading && (
               <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
                 <span className="text-white font-black uppercase tracking-widest animate-pulse text-sm">
@@ -119,12 +120,12 @@ const ImageField: React.FC<ImageFieldProps> = ({
               </div>
             )}
           </div>
-          <div className="flex divide-x-4 divide-black">
+          <div className="flex divide-x-2 divide-black">
             <button
               type="button"
               onClick={() => fileInput.current?.click()}
               disabled={isUploading}
-              className="flex-1 p-4 font-black uppercase text-xs tracking-widest hover:bg-black hover:text-white transition-colors disabled:opacity-40"
+              className="flex-1 p-2.5 font-black uppercase text-[10px] tracking-widest hover:bg-black hover:text-white transition-colors disabled:opacity-40"
             >
               REPLACE
             </button>
@@ -132,7 +133,7 @@ const ImageField: React.FC<ImageFieldProps> = ({
               type="button"
               onClick={handleRemove}
               disabled={isUploading}
-              className="flex-1 p-4 font-black uppercase text-xs tracking-widest text-red-600 hover:bg-red-500 hover:text-white transition-colors disabled:opacity-40"
+              className="flex-1 p-2.5 font-black uppercase text-[10px] tracking-widest text-red-600 hover:bg-red-500 hover:text-white transition-colors disabled:opacity-40"
             >
               REMOVE
             </button>
@@ -152,7 +153,7 @@ const ImageField: React.FC<ImageFieldProps> = ({
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') fileInput.current?.click();
           }}
-          className={`${aspectClass} border-4 border-dashed flex flex-col items-center justify-center gap-3 cursor-pointer transition-colors ${
+          className={`${aspectClass} border-2 border-dashed flex flex-col items-center justify-center gap-3 cursor-pointer transition-colors ${
             isDragging ? 'border-[#FF5F1F] bg-[#FF5F1F]/10' : 'border-black bg-gray-50 hover:bg-gray-100'
           }`}
         >
@@ -160,7 +161,7 @@ const ImageField: React.FC<ImageFieldProps> = ({
             <span className="font-black uppercase tracking-widest animate-pulse text-sm">UPLOADING...</span>
           ) : (
             <>
-              <span className="flex items-center justify-center h-12 w-12 border-4 border-black text-2xl leading-none">
+              <span className="flex items-center justify-center h-9 w-9 border-2 border-black text-lg leading-none">
                 +
               </span>
               <span className="font-black uppercase tracking-widest text-xs">DROP_IMAGE / CLICK_TO_BROWSE</span>
@@ -177,7 +178,7 @@ const ImageField: React.FC<ImageFieldProps> = ({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="https://..."
-          className="w-full border-4 border-black p-3 font-bold text-sm outline-none focus:border-[#FF5F1F]"
+          className="w-full border-2 border-black px-3 py-2 font-bold text-sm outline-none focus:border-[#FF5F1F]"
         />
       )}
 

@@ -2,18 +2,25 @@
 
 import React, { useMemo } from 'react';
 import { useGetProjectsQuery } from '@/services/api';
+import { PageHeader, Panel, StatCard, Badge } from '@/components/admin/ui';
 import type { Project } from '@/types';
+
+const METRICS = [
+  { label: 'TOTAL VIEWS', value: '42.8K', hint: '+12% VS LAST MONTH' },
+  { label: 'UNIQUE VISITORS', value: '18.2K', hint: '+5% VS LAST MONTH' },
+  { label: 'BOUNCE RATE', value: '14.2%', hint: '-2% VS LAST MONTH' },
+  { label: 'AVG SESSION', value: '04:12', hint: '+22S VS LAST MONTH' },
+];
+
+const SOURCES = [
+  { source: 'DIRECT', value: 85 },
+  { source: 'GITHUB', value: 65 },
+  { source: 'LINKEDIN', value: 45 },
+  { source: 'SEARCH', value: 30 },
+];
 
 const AnalyticsPage: React.FC = () => {
   const { data: projects = [] } = useGetProjectsQuery();
-
-  // Mock analytics data - in a real app these would come from an API
-  const metrics = [
-    { label: 'TOTAL_VIEWS', value: '42.8K', trend: '+12%', status: 'HIGH' },
-    { label: 'UNIQUE_VISITORS', value: '18.2K', trend: '+5%', status: 'STABLE' },
-    { label: 'BOUNCE_RATE', value: '14.2%', trend: '-2%', status: 'OPTIMAL' },
-    { label: 'AVG_SESSION', value: '04:12', trend: '+22s', status: 'CRITICAL' },
-  ];
 
   const projectStats = useMemo(
     () =>
@@ -21,96 +28,98 @@ const AnalyticsPage: React.FC = () => {
         .map((p) => ({
           name: p.title,
           clicks: Math.floor(Math.random() * 2000) + 500,
-          conversion: (Math.random() * 5 + 1).toFixed(1) + '%',
+          conversion: `${(Math.random() * 5 + 1).toFixed(1)}%`,
         }))
-        .sort((a, b) => b.clicks - a.clicks),
+        .sort((a, b) => b.clicks - a.clicks)
+        .slice(0, 8),
     [projects]
   );
 
-  const geoStats = useMemo(
+  const geo = useMemo(
     () =>
       ['USA', 'GERMANY', 'UK', 'JAPAN', 'SINGAPORE', 'BRAZIL', 'INDIA', 'CANADA'].map((country) => ({
         country,
-        share: (Math.random() * 20).toFixed(1) + '%',
+        share: `${(Math.random() * 20).toFixed(1)}%`,
       })),
     []
   );
 
   return (
-    <div className="space-y-12 animate-in fade-in duration-500">
-      <header className="border-b-4 border-black pb-8">
-        <h2 className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl uppercase tracking-tighter">DATA_INTELLIGENCE</h2>
-        <p className="mt-4 text-xl font-bold uppercase text-[#FF5F1F]">SYSTEM PERFORMANCE MONITORING</p>
-      </header>
+    <div className="space-y-5 animate-in fade-in duration-200">
+      <PageHeader
+        title="ANALYTICS"
+        subtitle="Traffic and engagement"
+        actions={<Badge tone="accent">SAMPLE DATA</Badge>}
+      />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-        {metrics.map((m) => (
-          <div key={m.label} className="border-4 border-black p-8 bg-gray-50 flex flex-col justify-between group hover:bg-[#FF5F1F] hover:text-white transition-all">
-            <div className="flex justify-between items-start mb-8">
-              <span className="text-[10px] font-black uppercase tracking-widest opacity-50 group-hover:opacity-100">{m.label}</span>
-              <span className="text-xs font-black">{m.trend}</span>
-            </div>
-            <div className="space-y-2">
-              <span className="text-5xl font-black leading-none">{m.value}</span>
-              <p className="text-[10px] font-black opacity-30 group-hover:opacity-70">{m.status}</p>
-            </div>
-          </div>
+      <Panel title="NOTE">
+        <p className="text-[11px] font-bold uppercase tracking-wide text-black/50 leading-relaxed">
+          These figures are placeholders — no analytics provider is connected yet. Wire one up and this page
+          can read real numbers.
+        </p>
+      </Panel>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {METRICS.map((m) => (
+          <StatCard key={m.label} label={m.label} value={m.value} hint={m.hint} />
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 border-4 border-black p-8 space-y-8">
-          <h3 className="text-2xl font-black uppercase">TRAFFIC_SOURCE_DISTRIBUTION</h3>
-          <div className="space-y-6">
-            {[
-              { source: 'DIRECT', val: 85, color: 'bg-black' },
-              { source: 'GITHUB', val: 65, color: 'bg-[#FF5F1F]' },
-              { source: 'LINKEDIN', val: 45, color: 'bg-gray-400' },
-              { source: 'SEARCH', val: 30, color: 'bg-gray-200' },
-            ].map(s => (
-              <div key={s.source} className="space-y-2">
-                <div className="flex justify-between text-xs font-black">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <Panel title="TRAFFIC SOURCES">
+          <div className="space-y-3">
+            {SOURCES.map((s) => (
+              <div key={s.source} className="space-y-1">
+                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
                   <span>{s.source}</span>
-                  <span>{s.val}%</span>
+                  <span className="tabular-nums text-black/40">{s.value}%</span>
                 </div>
-                <div className="h-8 border-2 border-black w-full bg-white relative">
-                  <div className={`h-full ${s.color} transition-all duration-1000`} style={{ width: `${s.val}%` }}></div>
+                <div className="h-4 border-2 border-black bg-white">
+                  <div className="h-full bg-[#FF5F1F]" style={{ width: `${s.value}%` }} />
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </Panel>
 
-        <div className="border-4 border-black p-8 space-y-8 bg-black text-white">
-          <h3 className="text-2xl font-black uppercase tracking-tighter text-[#FF5F1F]">CONVERSION_LOG</h3>
-          <div className="space-y-4">
+        <Panel title="TOP PROJECTS" flush>
+          <div className="divide-y-2 divide-black/10">
             {projectStats.map((p, i) => (
-              <div key={p.name} className="flex justify-between items-end border-b-2 border-white/10 pb-4">
-                <div>
-                  <span className="text-[10px] font-black opacity-40">RANK_{i+1}</span>
-                  <p className="text-lg font-black uppercase truncate max-w-[150px]">{p.name}</p>
+              <div key={p.name} className="px-4 py-2.5 flex items-center justify-between gap-3">
+                <div className="min-w-0 flex items-center gap-3">
+                  <span className="text-[10px] font-black tabular-nums text-black/25">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <span className="text-[11px] font-black uppercase tracking-wide truncate">{p.name}</span>
                 </div>
-                <div className="text-right">
-                  <span className="text-xl font-black">{p.clicks}</span>
-                  <p className="text-[10px] font-black text-[#FF5F1F]">{p.conversion}</p>
+                <div className="shrink-0 text-right">
+                  <div className="text-xs font-black tabular-nums">{p.clicks}</div>
+                  <div className="text-[9px] font-black text-[#FF5F1F]">{p.conversion}</div>
                 </div>
               </div>
             ))}
+            {projectStats.length === 0 && (
+              <p className="px-4 py-6 text-[11px] font-black uppercase tracking-widest text-black/30">
+                No projects yet
+              </p>
+            )}
           </div>
-        </div>
+        </Panel>
       </div>
 
-      <div className="border-4 border-black p-8 space-y-4 bg-gray-50">
-        <h3 className="text-2xl font-black uppercase">GEOGRAPHIC_INTEL</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-           {geoStats.map(({ country, share }) => (
-             <div key={country} className="p-4 border-2 border-black bg-white flex justify-between items-center group hover:bg-black hover:text-white transition-colors">
-               <span className="font-black text-xs">{country}</span>
-               <span className="text-[10px] opacity-40 group-hover:opacity-100">{share}</span>
-             </div>
-           ))}
+      <Panel title="GEOGRAPHY">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {geo.map((g) => (
+            <div
+              key={g.country}
+              className="border-2 border-black px-3 py-2 flex items-center justify-between gap-2"
+            >
+              <span className="text-[10px] font-black uppercase tracking-wide truncate">{g.country}</span>
+              <span className="text-[10px] font-black tabular-nums text-black/40">{g.share}</span>
+            </div>
+          ))}
         </div>
-      </div>
+      </Panel>
     </div>
   );
 };

@@ -48,7 +48,9 @@ const FooterSection: React.FC = () => {
       </div>
 
       <div className="mt-24 w-full h-px bg-black"></div>
-      <div className="mt-8 flex justify-between items-center text-[10px] font-black uppercase tracking-[0.5em] overflow-hidden whitespace-nowrap">
+      {/* w-full + max-w-full keep the clip reliable; the flex row it used to be
+          let the oversized track widen the page on non-home routes. */}
+      <div className="mt-8 w-full max-w-full overflow-hidden whitespace-nowrap text-[10px] font-black uppercase tracking-[0.5em]">
          <span className="animate-marquee">{marqueeContent}</span>
       </div>
     </footer>

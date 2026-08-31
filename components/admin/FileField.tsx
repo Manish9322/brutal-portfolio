@@ -80,8 +80,8 @@ const FileField: React.FC<FileFieldProps> = ({
       />
 
       {hasFile ? (
-        <div className="border-4 border-black bg-white">
-          <div className="p-3 flex items-center gap-3 border-b-4 border-black">
+        <div className="border-2 border-black bg-white">
+          <div className="p-3 flex items-center gap-3 border-b-2 border-black">
             <span className="flex items-center justify-center h-9 w-9 bg-black text-white text-[9px] font-black shrink-0">
               FILE
             </span>
@@ -95,7 +95,7 @@ const FileField: React.FC<FileFieldProps> = ({
               {filenameFrom(value)}
             </a>
           </div>
-          <div className="flex divide-x-4 divide-black">
+          <div className="flex divide-x-2 divide-black">
             <button
               type="button"
               onClick={() => fileInput.current?.click()}
@@ -132,7 +132,7 @@ const FileField: React.FC<FileFieldProps> = ({
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') fileInput.current?.click();
           }}
-          className={`border-4 border-dashed p-4 flex items-center justify-center gap-3 cursor-pointer transition-colors ${
+          className={`border-2 border-dashed p-4 flex items-center justify-center gap-3 cursor-pointer transition-colors ${
             isDragging ? 'border-[#FF5F1F] bg-[#FF5F1F]/10' : 'border-black bg-gray-50 hover:bg-gray-100'
           }`}
         >
@@ -140,7 +140,7 @@ const FileField: React.FC<FileFieldProps> = ({
             <span className="font-black uppercase tracking-widest text-[10px] animate-pulse">UPLOADING...</span>
           ) : (
             <>
-              <span className="flex items-center justify-center h-7 w-7 border-4 border-black text-base leading-none">+</span>
+              <span className="flex items-center justify-center h-7 w-7 border-2 border-black text-base leading-none">+</span>
               <span className="font-black uppercase tracking-widest text-[10px]">UPLOAD_FILE (PDF / DOC)</span>
             </>
           )}

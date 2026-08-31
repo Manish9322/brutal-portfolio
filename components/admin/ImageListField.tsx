@@ -3,6 +3,7 @@
 import React, { useRef, useState } from 'react';
 import { useImageUpload } from '@/hooks/use-image-upload';
 import type { UploadModule } from '@/lib/cloudinary';
+import { cdn } from '@/lib/image-url';
 
 export interface ImageListItem {
   _id?: string;
@@ -129,10 +130,10 @@ const ImageListField: React.FC<ImageListFieldProps> = ({
           {items.map((item, index) => (
             <div
               key={item._id ?? `${item.url}-${index}`}
-              className="border-4 border-black bg-white flex flex-col sm:flex-row"
+              className="border-2 border-black bg-white flex flex-col sm:flex-row"
             >
-              <div className="sm:w-48 shrink-0 aspect-video sm:aspect-auto bg-gray-100 border-b-4 sm:border-b-0 sm:border-r-4 border-black overflow-hidden">
-                <img src={item.url} alt={item.caption || `Screenshot ${index + 1}`} className="w-full h-full object-cover" />
+              <div className="sm:w-48 shrink-0 aspect-video sm:aspect-auto bg-gray-100 border-b-2 sm:border-b-0 sm:border-r-2 border-black overflow-hidden">
+                <img src={cdn(item.url, { width: 400 })} alt={item.caption || `Screenshot ${index + 1}`} loading="lazy" decoding="async" className="w-full h-full object-cover" />
               </div>
 
               <div className="flex-1 p-4 space-y-3">
@@ -193,11 +194,11 @@ const ImageListField: React.FC<ImageListFieldProps> = ({
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') addInput.current?.click();
         }}
-        className={`border-4 border-dashed p-6 flex items-center justify-center gap-4 cursor-pointer transition-colors ${
+        className={`border-2 border-dashed p-6 flex items-center justify-center gap-4 cursor-pointer transition-colors ${
           isDragging ? 'border-[#FF5F1F] bg-[#FF5F1F]/10' : 'border-black bg-gray-50 hover:bg-gray-100'
         }`}
       >
-        <span className="flex items-center justify-center h-9 w-9 border-4 border-black text-xl leading-none">+</span>
+        <span className="flex items-center justify-center h-8 w-8 border-2 border-black text-base leading-none">+</span>
         <span className="font-black uppercase tracking-widest text-xs">ADD_SCREENSHOTS (MULTIPLE OK)</span>
       </div>
 

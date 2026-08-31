@@ -5,7 +5,9 @@ import Link from 'next/link';
 import { useGetProjectQuery, useGetProjectsQuery } from '@/services/api';
 import { sortProjects } from '@/lib/projects';
 import ProjectImage from '@/components/ProjectImage';
+import TopBar from '@/components/TopBar';
 import type { Project } from '@/types';
+import { cdn, cdnSrcSet } from '@/lib/image-url';
 
 const isUrl = (v?: string) => !!v && /^https?:\/\//i.test(v);
 
@@ -49,19 +51,23 @@ const ProjectDetail: React.FC<{ id: string }> = ({ id }) => {
 
   return (
     <article className="min-h-screen bg-white selection:bg-black selection:text-[#FF5F1F]">
-      <header className="border-b-4 border-black p-8 md:p-12 sticky top-0 bg-white z-40 flex justify-between items-center">
-        <div className="flex gap-4 md:gap-8">
-          <Link href="/work" className="font-black uppercase tracking-widest hover:text-[#FF5F1F] transition-colors">
-            [ ← WORKS ]
-          </Link>
-          <Link href="/" className="font-black uppercase tracking-widest hover:text-[#FF5F1F] transition-colors hidden md:block">
-            [ HOME ]
-          </Link>
-        </div>
-        <span className="text-[10px] font-black uppercase tracking-[0.5em] opacity-30 hidden lg:block">
-          CASE_FILE // {String(index + 1).padStart(2, '0')}
-        </span>
-      </header>
+      <TopBar
+        left={
+          <>
+            <Link href="/work" className="text-xs sm:text-sm font-black uppercase tracking-widest hover:text-[#FF5F1F] transition-colors">
+              [ ← WORKS ]
+            </Link>
+            <Link href="/" className="text-xs sm:text-sm font-black uppercase tracking-widest hover:text-[#FF5F1F] transition-colors hidden md:block">
+              [ HOME ]
+            </Link>
+          </>
+        }
+        right={
+          <span className="text-[10px] font-black uppercase tracking-[0.4em] opacity-30 hidden lg:block">
+            CASE_FILE // {String(index + 1).padStart(2, '0')}
+          </span>
+        }
+      />
 
       {/* Title block */}
       <div className="p-8 md:p-24 border-b-4 border-black">
@@ -99,6 +105,8 @@ const ProjectDetail: React.FC<{ id: string }> = ({ id }) => {
           src={p.image}
           alt={p.title}
           label={p.title}
+          width={1400}
+          priority
           className="w-full h-full object-cover"
         />
       </div>
@@ -214,8 +222,11 @@ const ProjectDetail: React.FC<{ id: string }> = ({ id }) => {
               <figure key={shot._id ?? i} className="group flex flex-col">
                 <div className="relative aspect-video overflow-hidden border-b-4 border-black bg-gray-100">
                   <img
-                    src={shot.url}
+                    src={cdn(shot.url, { width: 900 })}
+                    srcSet={cdnSrcSet(shot.url, 900)}
                     alt={shot.caption || `${p.title} screenshot ${i + 1}`}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover filter grayscale group-hover:grayscale-0 transition-all duration-500"
                   />
                 </div>

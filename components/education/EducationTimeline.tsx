@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
+import TopBar from '@/components/TopBar';
 import { useGetEducationQuery } from '@/services/api';
 import { sortEducation, formatRange } from '@/lib/education';
 import type { Education } from '@/types';
@@ -41,17 +42,21 @@ const EducationTimeline: React.FC = () => {
 
   return (
     <section className="border-b-4 border-black min-h-screen bg-white">
-      <header className="border-b-4 border-black p-8 md:p-12 sticky top-0 bg-white z-40 flex justify-between items-center">
-        <Link
-          href="/"
-          className="font-black uppercase tracking-widest hover:text-[#FF5F1F] transition-colors border-b-4 border-black"
-        >
-          [ ← EXIT_TO_SYSTEM_ROOT ]
-        </Link>
-        <span className="text-[10px] font-black uppercase tracking-[0.5em] opacity-30 hidden md:block">
-          ARCHIVE_MODE // CREDENTIALS
-        </span>
-      </header>
+      <TopBar
+        left={
+          <Link
+            href="/"
+            className="text-xs sm:text-sm font-black uppercase tracking-widest hover:text-[#FF5F1F] transition-colors border-b-4 border-black"
+          >
+            [ ← EXIT ]
+          </Link>
+        }
+        right={
+          <span className="text-[10px] font-black uppercase tracking-[0.4em] opacity-30 hidden md:block">
+            ARCHIVE_MODE // CREDENTIALS
+          </span>
+        }
+      />
 
       <div className="p-8 md:p-24 border-b-4 border-black bg-black text-white">
         <h1 className="font-heading font-bold text-4xl sm:text-5xl md:text-7xl lg:text-9xl uppercase leading-none tracking-tighter">

@@ -5,125 +5,282 @@ import {
   useGetProjectsQuery,
   useAddProjectMutation,
   useUpdateProjectMutation,
+  useDeleteProjectMutation,
   useUpdateProjectOrderMutation,
 } from '@/services/api';
 import ImageField from '@/components/admin/ImageField';
 import ImageListField from '@/components/admin/ImageListField';
 import ProjectImage from '@/components/ProjectImage';
+import {
+  PageHeader,
+  Panel,
+  Field,
+  FormGrid,
+  Input,
+  Textarea,
+  Button,
+  IconButton,
+  Toggle,
+  Badge,
+  ListRow,
+  ListPanel,
+  EmptyState,
+  EditorShell,
+  StringListField,
+  Loading,
+} from '@/components/admin/ui';
 import type { Project } from '@/types';
 
 const ProjectsPage: React.FC = () => {
-  const { data: projects = [] } = useGetProjectsQuery();
+  const { data: projects = [], isLoading } = useGetProjectsQuery();
   const [addProject] = useAddProjectMutation();
   const [updateProject] = useUpdateProjectMutation();
-  const [updateProjectOrder] = useUpdateProjectOrderMutation();
+  const [deleteProject] = useDeleteProjectMutation();
+  const [updateOrder] = useUpdateProjectOrderMutation();
 
   const [editing, setEditing] = useState<string | null>(null);
-  const [formData, setFormData] = useState<Partial<Project>>({});
+  const [form, setForm] = useState<Partial<Project>>({});
+  const [saving, setSaving] = useState(false);
 
   const list = projects as Project[];
-
-  const handleEdit = (project: Project) => {
-    setEditing(project._id);
-    setFormData(project);
-  };
+  const set = (patch: Partial<Project>) => setForm({ ...form, ...patch });
 
   const handleSave = async () => {
-    if (editing === 'new') {
-      await addProject({ ...formData, visible: true });
-    } else {
-      await updateProject({ ...formData, _id: editing });
+    setSaving(true);
+    try {
+      const screenshots = (form.screenshots ?? []).map(({ _id, ...rest }: any) =>
+        typeof _id === 'string' && _id.startsWith('new-') ? rest : { _id, ...rest }
+      );
+      const payload = { ...form, screenshots };
+      if (editing === 'new') await addProject({ ...payload, visible: form.visible ?? true });
+      else await updateProject({ ...payload, _id: editing });
+      setEditing(null);
+    } finally {
+      setSaving(false);
     }
-    setEditing(null);
   };
 
-  const toggleVisible = (project: Project) => {
-    updateProject({ _id: project._id, visible: !project.visible });
-  };
-
-  const move = (idx: number, dir: 'up' | 'down') => {
-    const target = dir === 'up' ? idx - 1 : idx + 1;
+  const move = (index: number, delta: -1 | 1) => {
+    const target = index + delta;
     if (target < 0 || target >= list.length) return;
-
     const reordered = [...list];
-    [reordered[idx], reordered[target]] = [reordered[target], reordered[idx]];
-    updateProjectOrder({ orderedIds: reordered.map((p) => p._id) });
+    [reordered[index], reordered[target]] = [reordered[target], reordered[index]];
+    updateOrder({ orderedIds: reordered.map((p) => p._id) });
   };
+
+  const remove = (item: Project) => {
+    if (window.confirm(`Delete "${item.title}"? This cannot be undone.`)) deleteProject(item._id);
+  };
+
+  if (isLoading) return <Loading label="LOADING PROJECTS" />;
 
   if (editing) {
     return (
-      <div className="space-y-8 animate-in slide-in-from-right-10 duration-300">
-        <div className="flex justify-between items-center border-b-4 border-black pb-4">
-          <h3 className="text-4xl font-black uppercase tracking-tighter">PROJECT_V1_CONFIG</h3>
-          <button onClick={() => setEditing(null)} className="font-black hover:text-[#FF5F1F]">X_ABORT</button>
-        </div>
+      <EditorShell
+        title={editing === 'new' ? 'NEW PROJECT' : 'EDIT PROJECT'}
+        onCancel={() => setEditing(null)}
+        onSave={handleSave}
+        saving={saving}
+        extraActions={
+          <>
+            <Toggle
+              on={!!form.featured}
+              onChange={() => set({ featured: !form.featured })}
+              onLabel="FEATURED"
+              offLabel="NOT FEATURED"
+            />
+            <Toggle on={form.visible !== false} onChange={() => set({ visible: form.visible === false })} />
+          </>
+        }
+      >
+        <Panel title="BASICS">
+          <FormGrid>
+            <Field label="TITLE" wide>
+              <Input value={form.title ?? ''} onChange={(e) => set({ title: e.target.value })} />
+            </Field>
+            <Field label="CATEGORY" hint="Shown as the orange eyebrow">
+              <Input value={form.category ?? ''} onChange={(e) => set({ category: e.target.value })} />
+            </Field>
+            <Field label="YEAR">
+              <Input value={form.year ?? ''} onChange={(e) => set({ year: e.target.value })} />
+            </Field>
+            <Field label="ROLE">
+              <Input value={form.role ?? ''} onChange={(e) => set({ role: e.target.value })} />
+            </Field>
+            <Field label="TEAM SIZE">
+              <Input value={form.team ?? ''} onChange={(e) => set({ team: e.target.value })} />
+            </Field>
+            <Field label="TIMELINE" wide hint="E.g. June 2025 - July 2025">
+              <Input value={form.timeline ?? ''} onChange={(e) => set({ timeline: e.target.value })} />
+            </Field>
+            <Field label="SHORT DESCRIPTION" wide hint="Used on the cards">
+              <Textarea
+                value={form.description ?? ''}
+                onChange={(e) => set({ description: e.target.value })}
+                rows={3}
+              />
+            </Field>
+          </FormGrid>
+        </Panel>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase">TITLE</label>
-            <input value={formData.title || ''} onChange={e => setFormData({ ...formData, title: e.target.value })} className="w-full border-4 border-black p-4 font-black text-xl uppercase outline-none focus:border-[#FF5F1F]" />
-          </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase">CATEGORY</label>
-            <input value={formData.category || ''} onChange={e => setFormData({ ...formData, category: e.target.value })} className="w-full border-4 border-black p-4 font-black text-xl uppercase outline-none focus:border-[#FF5F1F]" />
-          </div>
-          <div className="md:col-span-2">
-            <ImageField
-              label="COVER_IMAGE"
-              module="projects"
-              value={formData.image || ''}
-              onChange={(url) => setFormData({ ...formData, image: url })}
+        <Panel title="COVER IMAGE">
+          <ImageField
+            label="COVER"
+            module="projects"
+            value={form.image ?? ''}
+            onChange={(image) => set({ image })}
+          />
+        </Panel>
+
+        <Panel title="LINKS">
+          <FormGrid>
+            <Field label="LIVE URL">
+              <Input
+                value={form.liveUrl ?? ''}
+                onChange={(e) => set({ liveUrl: e.target.value })}
+                placeholder="https://"
+              />
+            </Field>
+            <Field label="SOURCE URL">
+              <Input
+                value={form.githubUrl ?? ''}
+                onChange={(e) => set({ githubUrl: e.target.value })}
+                placeholder="https://"
+              />
+            </Field>
+            <Field label="CARD LINK" wide hint="Where the card's link points if set">
+              <Input value={form.link ?? ''} onChange={(e) => set({ link: e.target.value })} />
+            </Field>
+          </FormGrid>
+        </Panel>
+
+        <Panel title="CASE STUDY" description="Shown on the project detail page">
+          <div className="space-y-4">
+            <Field label="FULL DESCRIPTION">
+              <Textarea
+                value={form.longDescription ?? ''}
+                onChange={(e) => set({ longDescription: e.target.value })}
+                rows={6}
+              />
+            </Field>
+            <StringListField
+              label="TECH STACK"
+              value={form.techStack ?? []}
+              onChange={(techStack) => set({ techStack })}
+              placeholder="ADD A TECHNOLOGY..."
+              caps
+              hint="Cards show the first 5"
+            />
+            <StringListField
+              label="CHALLENGES"
+              value={form.challenges ?? []}
+              onChange={(challenges) => set({ challenges })}
+              placeholder="ADD A CHALLENGE..."
+              hint="Shown as FRICTION"
+            />
+            <StringListField
+              label="SOLUTIONS"
+              value={form.solutions ?? []}
+              onChange={(solutions) => set({ solutions })}
+              placeholder="ADD A SOLUTION..."
+              hint="Shown as RESOLUTION"
             />
           </div>
-          <div className="md:col-span-2 space-y-2">
-            <label className="text-[10px] font-black uppercase">TECH_STACK (COMMA SEP)</label>
-            <input value={formData.techStack?.join(', ') || ''} onChange={e => setFormData({ ...formData, techStack: e.target.value.split(',').map(s => s.trim().toUpperCase()) })} className="w-full border-4 border-black p-4 font-black text-xl uppercase outline-none focus:border-[#FF5F1F]" />
-          </div>
-          <div className="md:col-span-2 space-y-2">
-            <label className="text-[10px] font-black uppercase">INTEL_LOG</label>
-            <textarea value={formData.description || ''} onChange={e => setFormData({ ...formData, description: e.target.value })} rows={4} className="w-full border-4 border-black p-4 font-bold text-lg outline-none focus:border-[#FF5F1F]" />
-          </div>
-          <div className="md:col-span-2 pt-4 border-t-4 border-black">
-            <ImageListField
-              label="SCREEN_CAPTURES"
-              module="projects/screenshots"
-              value={formData.screenshots || []}
-              onChange={(items) => setFormData({ ...formData, screenshots: items as Project['screenshots'] })}
-            />
-          </div>
-        </div>
-        <button onClick={handleSave} className="w-full bg-black text-white py-8 text-2xl font-black uppercase tracking-widest hover:bg-[#FF5F1F] transition-all">COMMIT_TO_SYSTEM</button>
-      </div>
+        </Panel>
+
+        <Panel title="SCREENSHOTS">
+          <ImageListField
+            label="CAPTURES"
+            module="projects/screenshots"
+            value={(form.screenshots ?? []) as any}
+            onChange={(items) => set({ screenshots: items as Project['screenshots'] })}
+          />
+        </Panel>
+      </EditorShell>
     );
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex justify-between items-center border-b-4 border-black pb-4">
-        <h2 className="text-4xl font-black uppercase tracking-tighter">PROJECTS</h2>
-        <button onClick={() => { setEditing('new'); setFormData({ techStack: [], year: '2024' }); }} className="bg-black text-white px-8 py-4 font-black hover:bg-[#FF5F1F]">NEW_ASSET</button>
-      </div>
-      <div className="divide-y-4 divide-black border-4 border-black">
-        {list.map((p, i) => (
-          <div key={p._id} className={`p-6 flex justify-between items-center bg-white ${!p.visible ? 'opacity-30' : ''}`}>
-            <div className="flex gap-4 items-center">
-               <div className="w-16 h-16 border-2 border-black overflow-hidden bg-gray-100 flex-shrink-0">
-                  <ProjectImage src={p.image} alt={p.title} className="w-full h-full object-cover grayscale" />
-               </div>
-               <div>
-                 <span className="text-[10px] font-black text-[#FF5F1F] uppercase">{p.category}</span>
-                 <h4 className="text-2xl font-black uppercase">{p.title}</h4>
-               </div>
-            </div>
-            <div className="flex items-center gap-2">
-               <button onClick={() => move(i, 'up')} className="p-2 border-2 border-black">↑</button>
-               <button onClick={() => move(i, 'down')} className="p-2 border-2 border-black">↓</button>
-               <button onClick={() => toggleVisible(p)} className={`px-4 py-2 border-2 border-black text-[10px] font-black uppercase ${p.visible ? 'bg-green-100' : 'bg-red-100'}`}>{p.visible ? 'VISIBLE' : 'HIDDEN'}</button>
-               <button onClick={() => handleEdit(p)} className="px-6 py-2 bg-black text-white font-black uppercase text-xs hover:bg-[#FF5F1F]">EDIT</button>
-            </div>
-          </div>
-        ))}
-      </div>
+    <div className="space-y-5 animate-in fade-in duration-200">
+      <PageHeader
+        title="PROJECTS"
+        subtitle="Order here decides the homepage and /work sequence"
+        actions={
+          <Button
+            variant="primary"
+            onClick={() => {
+              setEditing('new');
+              setForm({
+                visible: true,
+                featured: false,
+                techStack: [],
+                challenges: [],
+                solutions: [],
+                screenshots: [],
+                year: String(new Date().getFullYear()),
+              });
+            }}
+          >
+            + NEW PROJECT
+          </Button>
+        }
+      />
+
+      {list.length === 0 ? (
+        <EmptyState label="No projects yet" />
+      ) : (
+        <ListPanel>
+          {list.map((p, index) => (
+            <ListRow
+              key={p._id}
+              dimmed={!p.visible}
+              media={
+                <div className="w-14 h-14 border-2 border-black overflow-hidden bg-gray-100">
+                  <ProjectImage src={p.image} alt={p.title} width={120} className="w-full h-full object-cover" />
+                </div>
+              }
+              eyebrow={p.category}
+              title={p.title}
+              meta={
+                <span className="flex flex-wrap items-center gap-2">
+                  <span className="tabular-nums">#{index + 1}</span>
+                  {p.year && <span>· {p.year}</span>}
+                  {p.featured && <Badge tone="accent">FEATURED</Badge>}
+                  {!p.image && <Badge tone="muted">NO IMAGE</Badge>}
+                </span>
+              }
+              actions={
+                <>
+                  <IconButton aria-label="Move up" onClick={() => move(index, -1)} disabled={index === 0}>
+                    ↑
+                  </IconButton>
+                  <IconButton
+                    aria-label="Move down"
+                    onClick={() => move(index, 1)}
+                    disabled={index === list.length - 1}
+                  >
+                    ↓
+                  </IconButton>
+                  <Toggle on={p.visible} onChange={() => updateProject({ _id: p._id, visible: !p.visible })} />
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    onClick={() => {
+                      setEditing(p._id);
+                      setForm(p);
+                    }}
+                  >
+                    EDIT
+                  </Button>
+                  <Button size="sm" variant="danger" onClick={() => remove(p)}>
+                    DELETE
+                  </Button>
+                </>
+              }
+            />
+          ))}
+        </ListPanel>
+      )}
     </div>
   );
 };

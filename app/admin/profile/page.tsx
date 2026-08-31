@@ -9,12 +9,27 @@ import {
 } from '@/services/api';
 import { useDebouncedDraft } from '@/hooks/use-debounced-draft';
 import FileField from '@/components/admin/FileField';
+import {
+  PageHeader,
+  Panel,
+  Field,
+  FormGrid,
+  Input,
+  Textarea,
+  Button,
+  IconButton,
+  Toggle,
+  Badge,
+  EmptyState,
+  Loading,
+} from '@/components/admin/ui';
 
 const ProfilePage: React.FC = () => {
   const { data: remoteProfile } = useGetProfileQuery();
   const [updateProfile] = useUpdateProfileMutation();
   const { data: remoteSettings } = useGetSettingsQuery();
   const [updateSettings] = useUpdateSettingsMutation();
+
   const [profile, setProfile] = useDebouncedDraft<any>(remoteProfile, (draft) => {
     // Links added in the browser carry a placeholder id; drop it so Mongoose
     // mints a real ObjectId instead of rejecting the cast.
@@ -26,8 +41,6 @@ const ProfilePage: React.FC = () => {
     });
   });
 
-  // Footer resources live on the settings document but are edited here, beside
-  // the rest of the identity fields.
   const [settings, setSettings] = useDebouncedDraft<any>(remoteSettings, (draft) => {
     updateSettings({
       ...draft,
@@ -37,11 +50,40 @@ const ProfilePage: React.FC = () => {
     });
   });
 
-  if (!profile) {
-    return <p className="font-black uppercase opacity-20 py-24 text-center">LOADING_IDENTITY...</p>;
-  }
+  if (!profile) return <Loading label="LOADING PROFILE" />;
 
+  const socialLinks: any[] = profile.socialLinks ?? [];
   const footerResources: any[] = settings?.footerResources ?? [];
+  const telegramVisible = profile.telegramVisible !== false;
+
+  const set = (field: string, value: unknown) => setProfile({ ...profile, [field]: value });
+
+  const IDENTITY_FIELDS = [
+    { key: 'name', label: 'FIRST NAME' },
+    { key: 'lastName', label: 'LAST NAME' },
+    { key: 'discipline', label: 'DISCIPLINE' },
+    { key: 'status', label: 'STATUS' },
+    { key: 'location', label: 'LOCATION' },
+    { key: 'email', label: 'CONTACT EMAIL' },
+  ];
+
+  /* ------------------------------------------------------ social links -- */
+
+  const updateLink = (id: string, patch: Record<string, string>) =>
+    setProfile({
+      ...profile,
+      socialLinks: socialLinks.map((l) => (l._id === id ? { ...l, ...patch } : l)),
+    });
+
+  const moveLink = (index: number, delta: -1 | 1) => {
+    const target = index + delta;
+    if (target < 0 || target >= socialLinks.length) return;
+    const next = [...socialLinks];
+    [next[index], next[target]] = [next[target], next[index]];
+    setProfile({ ...profile, socialLinks: next });
+  };
+
+  /* -------------------------------------------------- footer resources -- */
 
   const updateResource = (id: string, patch: Record<string, string>) =>
     setSettings({
@@ -49,201 +91,187 @@ const ProfilePage: React.FC = () => {
       footerResources: footerResources.map((r) => (r._id === id ? { ...r, ...patch } : r)),
     });
 
-  const addResource = () =>
-    setSettings({
-      ...settings,
-      footerResources: [...footerResources, { _id: `new-${Date.now()}`, label: 'NEW_RESOURCE', url: '' }],
-    });
-
-  const removeResource = (id: string) =>
-    setSettings({ ...settings, footerResources: footerResources.filter((r) => r._id !== id) });
-
-  const socialLinks: any[] = profile.socialLinks ?? [];
-  const telegramVisible = profile.telegramVisible !== false;
-
-  const handleChange = (field: string, value: string | boolean) => {
-    setProfile({ ...profile, [field]: value });
-  };
-
-  const updateSocialLink = (id: string, field: 'platform' | 'url', value: string) => {
-    const updatedLinks = socialLinks.map((link) =>
-      link._id === id ? { ...link, [field]: value } : link
-    );
-    setProfile({ ...profile, socialLinks: updatedLinks });
-  };
-
-  const addSocialLink = () => {
-    const newLink = { _id: `new-${Date.now()}`, platform: 'NEW PLATFORM', url: 'https://' };
-    setProfile({ ...profile, socialLinks: [...socialLinks, newLink] });
-  };
-
-  const removeSocialLink = (id: string) => {
-    setProfile({ ...profile, socialLinks: socialLinks.filter((link) => link._id !== id) });
-  };
-
   return (
-    <div className="space-y-12 animate-in fade-in duration-500">
-      <header className="border-b-4 border-black pb-4">
-        <h2 className="text-4xl font-black uppercase tracking-tighter text-[#FF5F1F]">MANAGE_CORE_IDENTITY</h2>
-      </header>
+    <div className="space-y-5 animate-in fade-in duration-200">
+      <PageHeader
+        title="PROFILE"
+        subtitle="Identity used across the site"
+        actions={<Badge tone="muted">SAVES AUTOMATICALLY</Badge>}
+      />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {[
-          { label: 'FIRST NAME', key: 'name' },
-          { label: 'LAST NAME', key: 'lastName' },
-          { label: 'STATUS', key: 'status' },
-          { label: 'LOCATION', key: 'location' },
-          { label: 'DISCIPLINE', key: 'discipline' },
-          { label: 'CONTACT EMAIL', key: 'email' },
-          { label: 'TELEGRAM HANDLE', key: 'telegram' },
-        ].map(field => (
-          <div key={field.key} className="space-y-2">
-            <div className="flex items-center justify-between gap-4 min-h-[22px]">
-              <label className="text-xs font-black uppercase tracking-widest opacity-50">{field.label}</label>
-              {field.key === 'telegram' && (
-                <button
-                  type="button"
-                  onClick={() => handleChange('telegramVisible', !telegramVisible)}
-                  aria-pressed={telegramVisible}
-                  title="Toggle whether this shows in the contact section"
-                  className={`px-3 py-1 border-2 border-black text-[10px] font-black uppercase tracking-widest transition-colors ${
-                    telegramVisible
-                      ? 'bg-[#FF5F1F] text-white hover:bg-black'
-                      : 'bg-white text-black hover:bg-gray-100'
-                  }`}
-                >
-                  {telegramVisible ? 'SHOWN_ON_SITE' : 'HIDDEN'}
-                </button>
-              )}
-            </div>
-            <input
-              value={profile[field.key] ?? ''}
-              onChange={e => handleChange(field.key, e.target.value)}
-              className={`w-full border-4 border-black p-4 font-black text-xl uppercase focus:border-[#FF5F1F] outline-none ${
-                field.key === 'telegram' && !telegramVisible ? 'opacity-40' : ''
-              }`}
-            />
-          </div>
-        ))}
-        <div className="md:col-span-2 space-y-2">
-          <label className="text-xs font-black uppercase tracking-widest opacity-50">MANIFESTO LINE (HERO)</label>
-          <textarea
-            value={profile.manifestoLine ?? ''}
-            onChange={e => handleChange('manifestoLine', e.target.value)}
-            rows={3}
-            className="w-full border-4 border-black p-4 font-black text-xl uppercase focus:border-[#FF5F1F] outline-none"
-          />
-        </div>
-      </div>
-
-      <div className="space-y-8 pt-8 border-t-4 border-black">
-        <div className="flex justify-between items-center">
-          <h3 className="text-2xl font-black uppercase tracking-tighter">SOCIAL_CONNECTS</h3>
-          <button
-            onClick={addSocialLink}
-            className="bg-black text-white px-6 py-2 text-xs font-black uppercase hover:bg-[#FF5F1F]"
-          >
-            ADD_LINK
-          </button>
-        </div>
-
-        <div className="space-y-4">
-          {socialLinks.map((link) => (
-            <div key={link._id} className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end p-4 border-4 border-black bg-gray-50">
-              <div className="md:col-span-3 space-y-2">
-                <label className="text-[10px] font-black uppercase opacity-40">PLATFORM</label>
-                <input
-                  value={link.platform}
-                  onChange={e => updateSocialLink(link._id, 'platform', e.target.value.toUpperCase())}
-                  className="w-full border-2 border-black p-2 font-black text-sm uppercase outline-none focus:border-[#FF5F1F]"
-                />
-              </div>
-              <div className="md:col-span-7 space-y-2">
-                <label className="text-[10px] font-black uppercase opacity-40">TARGET_URL</label>
-                <input
-                  value={link.url}
-                  onChange={e => updateSocialLink(link._id, 'url', e.target.value)}
-                  className="w-full border-2 border-black p-2 font-bold text-sm outline-none focus:border-[#FF5F1F]"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <button
-                  onClick={() => removeSocialLink(link._id)}
-                  className="w-full bg-red-500 text-white py-2 text-xs font-black uppercase hover:bg-black transition-colors"
-                >
-                  PURGE
-                </button>
-              </div>
-            </div>
+      <Panel title="IDENTITY">
+        <FormGrid>
+          {IDENTITY_FIELDS.map((f) => (
+            <Field key={f.key} label={f.label}>
+              <Input value={profile[f.key] ?? ''} onChange={(e) => set(f.key, e.target.value)} caps />
+            </Field>
           ))}
-          {socialLinks.length === 0 && (
-             <p className="text-center py-8 font-black uppercase opacity-20 border-4 border-dashed border-black">NO_SOCIAL_ASSETS_LINKED</p>
-          )}
-        </div>
-      </div>
 
-      <div className="space-y-8 pt-8 border-t-4 border-black">
-        <div className="flex justify-between items-center gap-4">
-          <div>
-            <h3 className="text-2xl font-black uppercase tracking-tighter">FOOTER_RESOURCES</h3>
-            <p className="mt-1 text-[10px] font-black uppercase tracking-widest opacity-40">
-              THE DOWNLOAD LINKS SHOWN IN THE SITE FOOTER
-            </p>
-          </div>
-          <button
-            onClick={addResource}
-            className="bg-black text-white px-6 py-2 text-xs font-black uppercase hover:bg-[#FF5F1F] whitespace-nowrap"
+          <Field label="TELEGRAM HANDLE" hint={telegramVisible ? undefined : 'Hidden from the contact section'}>
+            <div className="flex gap-2">
+              <Input
+                value={profile.telegram ?? ''}
+                onChange={(e) => set('telegram', e.target.value)}
+                className={telegramVisible ? '' : 'opacity-40'}
+                caps
+              />
+              <Toggle
+                on={telegramVisible}
+                onChange={() => set('telegramVisible', !telegramVisible)}
+                onLabel="SHOWN"
+                offLabel="HIDDEN"
+                aria-label="Toggle telegram visibility on the site"
+              />
+            </div>
+          </Field>
+
+          <Field label="MANIFESTO LINE" wide hint="The large statement in the hero">
+            <Textarea
+              value={profile.manifestoLine ?? ''}
+              onChange={(e) => set('manifestoLine', e.target.value)}
+              rows={3}
+              caps
+            />
+          </Field>
+        </FormGrid>
+      </Panel>
+
+      <Panel
+        title="SOCIAL LINKS"
+        description={`${socialLinks.length} shown in the footer`}
+        actions={
+          <Button
+            size="sm"
+            variant="primary"
+            onClick={() =>
+              setProfile({
+                ...profile,
+                socialLinks: [...socialLinks, { _id: `new-${Date.now()}`, platform: '', url: '' }],
+              })
+            }
           >
-            ADD_RESOURCE
-          </button>
-        </div>
-
-        {!settings ? (
-          <p className="font-black uppercase opacity-20 py-8 text-center">LOADING_RESOURCES...</p>
+            + ADD LINK
+          </Button>
+        }
+      >
+        {socialLinks.length === 0 ? (
+          <EmptyState label="No social links yet" />
         ) : (
-          <div className="space-y-4">
-            {footerResources.map((res) => (
-              <div key={res._id} className="grid grid-cols-1 md:grid-cols-12 gap-4 p-4 border-4 border-black bg-gray-50">
-                <div className="md:col-span-4 space-y-2">
-                  <label className="text-[10px] font-black uppercase opacity-40">LABEL</label>
-                  <input
-                    value={res.label ?? ''}
-                    onChange={(e) => updateResource(res._id, { label: e.target.value.toUpperCase() })}
-                    className="w-full border-2 border-black p-2 font-black text-sm uppercase outline-none focus:border-[#FF5F1F]"
-                  />
-                  <input
-                    value={res.url ?? ''}
-                    onChange={(e) => updateResource(res._id, { url: e.target.value })}
-                    placeholder="OR PASTE A LINK"
-                    className="w-full border-2 border-black p-2 font-bold text-[11px] outline-none focus:border-[#FF5F1F]"
-                  />
-                </div>
-                <div className="md:col-span-6">
-                  <FileField
-                    label="FILE"
-                    module="resources"
-                    value={res.url ?? ''}
-                    onChange={(url) => updateResource(res._id, { url })}
-                  />
-                </div>
-                <div className="md:col-span-2 flex items-end">
-                  <button
-                    onClick={() => removeResource(res._id)}
-                    className="w-full bg-red-500 text-white py-2 text-xs font-black uppercase hover:bg-black transition-colors"
+          <div className="space-y-2">
+            {socialLinks.map((link, index) => (
+              <div key={link._id} className="flex flex-col sm:flex-row gap-2 sm:items-center">
+                <Input
+                  value={link.platform ?? ''}
+                  onChange={(e) => updateLink(link._id, { platform: e.target.value.toUpperCase() })}
+                  placeholder="PLATFORM"
+                  caps
+                  className="sm:w-40 shrink-0"
+                />
+                <Input
+                  value={link.url ?? ''}
+                  onChange={(e) => updateLink(link._id, { url: e.target.value })}
+                  placeholder="https://"
+                  className="flex-1"
+                />
+                <div className="flex gap-1.5 shrink-0">
+                  <IconButton aria-label="Move up" onClick={() => moveLink(index, -1)} disabled={index === 0}>
+                    ↑
+                  </IconButton>
+                  <IconButton
+                    aria-label="Move down"
+                    onClick={() => moveLink(index, 1)}
+                    disabled={index === socialLinks.length - 1}
                   >
-                    DELETE
-                  </button>
+                    ↓
+                  </IconButton>
+                  <IconButton
+                    aria-label="Remove link"
+                    variant="danger"
+                    onClick={() =>
+                      setProfile({
+                        ...profile,
+                        socialLinks: socialLinks.filter((l) => l._id !== link._id),
+                      })
+                    }
+                  >
+                    ✕
+                  </IconButton>
                 </div>
               </div>
             ))}
-            {footerResources.length === 0 && (
-              <p className="text-center py-8 font-black uppercase opacity-20 border-4 border-dashed border-black">
-                NO_FOOTER_RESOURCES
-              </p>
-            )}
           </div>
         )}
-      </div>
+      </Panel>
+
+      <Panel
+        title="FOOTER RESOURCES"
+        description="Downloadable links in the site footer"
+        actions={
+          <Button
+            size="sm"
+            variant="primary"
+            disabled={!settings}
+            onClick={() =>
+              setSettings({
+                ...settings,
+                footerResources: [
+                  ...footerResources,
+                  { _id: `new-${Date.now()}`, label: 'NEW RESOURCE', url: '' },
+                ],
+              })
+            }
+          >
+            + ADD RESOURCE
+          </Button>
+        }
+      >
+        {!settings ? (
+          <Loading label="LOADING RESOURCES" />
+        ) : footerResources.length === 0 ? (
+          <EmptyState label="No footer resources yet" />
+        ) : (
+          <div className="space-y-3">
+            {footerResources.map((res) => (
+              <div key={res._id} className="border-2 border-black p-3 bg-gray-50 space-y-3">
+                <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+                  <Input
+                    value={res.label ?? ''}
+                    onChange={(e) => updateResource(res._id, { label: e.target.value.toUpperCase() })}
+                    placeholder="LABEL"
+                    caps
+                    className="sm:w-52 shrink-0"
+                  />
+                  <Input
+                    value={res.url ?? ''}
+                    onChange={(e) => updateResource(res._id, { url: e.target.value })}
+                    placeholder="OR PASTE A LINK"
+                    className="flex-1"
+                  />
+                  <Button
+                    size="sm"
+                    variant="danger"
+                    className="shrink-0"
+                    onClick={() =>
+                      setSettings({
+                        ...settings,
+                        footerResources: footerResources.filter((r) => r._id !== res._id),
+                      })
+                    }
+                  >
+                    DELETE
+                  </Button>
+                </div>
+                <FileField
+                  label="FILE"
+                  module="resources"
+                  value={res.url ?? ''}
+                  onChange={(url) => updateResource(res._id, { url })}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+      </Panel>
     </div>
   );
 };

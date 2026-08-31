@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { cdn, cdnSrcSet } from '@/lib/image-url';
 
 interface ProjectImageProps {
   src?: string;
@@ -8,6 +9,10 @@ interface ProjectImageProps {
   className?: string;
   /** Shown in the placeholder so an empty slot still identifies itself. */
   label?: string;
+  /** Rendered width in CSS pixels — drives the Cloudinary width cap. */
+  width?: number;
+  /** Above-the-fold images should not lazy-load. */
+  priority?: boolean;
 }
 
 /**
@@ -17,7 +22,14 @@ interface ProjectImageProps {
  * (the legacy records whose images point at the old site's /gallery folder),
  * so neither shows a broken-image icon.
  */
-const ProjectImage: React.FC<ProjectImageProps> = ({ src, alt, className = '', label }) => {
+const ProjectImage: React.FC<ProjectImageProps> = ({
+  src,
+  alt,
+  className = '',
+  label,
+  width = 800,
+  priority = false,
+}) => {
   const [failed, setFailed] = useState(false);
 
   // A new src deserves a fresh attempt.
@@ -26,9 +38,12 @@ const ProjectImage: React.FC<ProjectImageProps> = ({ src, alt, className = '', l
   if (src && !failed) {
     return (
       <img
-        src={src}
+        src={cdn(src, { width })}
+        srcSet={cdnSrcSet(src, width)}
         alt={alt}
         className={className}
+        loading={priority ? 'eager' : 'lazy'}
+        decoding="async"
         onError={() => setFailed(true)}
       />
     );

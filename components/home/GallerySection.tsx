@@ -6,6 +6,7 @@ import { useGetGalleryQuery } from '@/services/api';
 import { GallerySkeleton } from '@/components/skeletons';
 import { sortGallery, GALLERY_SHOWN } from '@/lib/gallery';
 import type { GalleryItem } from '@/types';
+import { cdn, cdnSrcSet } from '@/lib/image-url';
 
 const GallerySection: React.FC = () => {
   const { data: gallery = [], isLoading } = useGetGalleryQuery();
@@ -36,8 +37,11 @@ const GallerySection: React.FC = () => {
           >
             <div className="relative aspect-square overflow-hidden border-b-4 border-black">
               <img
-                src={item.url}
+                src={cdn(item.url, { width: 500 })}
+                srcSet={cdnSrcSet(item.url, 500)}
                 alt={item.caption}
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover filter grayscale group-hover:grayscale-0 transition-all duration-500 scale-100 group-hover:scale-110"
               />
               <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity"></div>

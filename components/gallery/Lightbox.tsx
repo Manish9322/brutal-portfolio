@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect } from 'react';
 import type { GalleryItem } from '@/types';
+import { cdn } from '@/lib/image-url';
 
 interface LightboxProps {
   items: GalleryItem[];
@@ -79,9 +80,10 @@ const Lightbox: React.FC<LightboxProps> = ({ items, index, onClose, onNavigate }
       {/* Image stage */}
       <div className="flex-1 flex items-center justify-center p-4 md:p-10 min-h-0">
         <img
-          src={item.url}
+          src={cdn(item.url, { width: 1600 })}
           alt={item.caption}
           onClick={(e) => e.stopPropagation()}
+          decoding="async"
           className="max-h-full max-w-full object-contain border-4 border-white"
         />
       </div>

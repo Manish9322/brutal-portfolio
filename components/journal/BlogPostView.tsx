@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import TopBar from '@/components/TopBar';
 import { useGetBlogsQuery, useGetProfileQuery } from '@/services/api';
 import type { Blog } from '@/types';
 
@@ -42,25 +43,29 @@ const BlogPostView: React.FC<BlogPostViewProps> = ({ slug }) => {
 
   return (
     <article className="min-h-screen bg-white selection:bg-black selection:text-[#FF5F1F]">
-      <header className="border-b-4 border-black p-8 md:p-12 sticky top-0 bg-white z-40 flex justify-between items-center">
-        <div className="flex gap-4 md:gap-8">
-          <Link
-            href="/journal"
-            className="font-black uppercase tracking-widest hover:text-[#FF5F1F] transition-colors"
-          >
-            [ ← JOURNAL ]
-          </Link>
-          <Link
-            href="/"
-            className="font-black uppercase tracking-widest hover:text-[#FF5F1F] transition-colors hidden md:block"
-          >
-            [ HOME ]
-          </Link>
-        </div>
-        <span className="text-[10px] font-black uppercase tracking-[0.5em] opacity-30 hidden lg:block">
-          READ_MODE // {blog.slug.toUpperCase()}
-        </span>
-      </header>
+      <TopBar
+        left={
+          <>
+            <Link
+              href="/journal"
+              className="text-xs sm:text-sm font-black uppercase tracking-widest hover:text-[#FF5F1F] transition-colors"
+            >
+              [ ← JOURNAL ]
+            </Link>
+            <Link
+              href="/"
+              className="text-xs sm:text-sm font-black uppercase tracking-widest hover:text-[#FF5F1F] transition-colors hidden md:block"
+            >
+              [ HOME ]
+            </Link>
+          </>
+        }
+        right={
+          <span className="text-[10px] font-black uppercase tracking-[0.4em] opacity-30 hidden lg:block truncate max-w-[40vw]">
+            READ_MODE // {blog.slug.toUpperCase()}
+          </span>
+        }
+      />
 
       <div className="max-w-5xl mx-auto px-6 py-16 md:py-32">
         <div className="mb-16 space-y-4">

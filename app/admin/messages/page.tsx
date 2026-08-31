@@ -6,117 +6,146 @@ import {
   useUpdateMessageMutation,
   useDeleteMessageMutation,
 } from '@/services/api';
+import {
+  PageHeader,
+  Panel,
+  Button,
+  Badge,
+  EmptyState,
+  Loading,
+} from '@/components/admin/ui';
 import type { ContactMessage } from '@/types';
 
 const MessagesPage: React.FC = () => {
-  const { data: messages = [] } = useGetMessagesQuery();
+  const { data: messages = [], isLoading } = useGetMessagesQuery();
   const [updateMessage] = useUpdateMessageMutation();
-  const [deleteMessageMutation] = useDeleteMessageMutation();
-  const [viewing, setViewing] = useState<ContactMessage | null>(null);
+  const [deleteMessage] = useDeleteMessageMutation();
+  const [openId, setOpenId] = useState<string | null>(null);
 
   const list = messages as ContactMessage[];
-
-  const markRead = async (msg: ContactMessage) => {
-    await updateMessage({ _id: msg._id, read: true });
-    if (viewing?._id === msg._id) setViewing({ ...viewing, read: true });
-  };
-
-  const deleteMessage = async (_id: string) => {
-    if (window.confirm('PURGE_MESSAGE_PERMANENTLY?')) {
-      await deleteMessageMutation(_id);
-      if (viewing?._id === _id) setViewing(null);
-    }
-  };
+  const unread = list.filter((m) => !m.read).length;
+  const open = list.find((m) => m._id === openId) ?? null;
 
   const openMessage = (msg: ContactMessage) => {
-    setViewing(msg);
-    if (!msg.read) markRead(msg);
+    setOpenId(msg._id);
+    if (!msg.read) updateMessage({ _id: msg._id, read: true });
   };
 
+  const remove = async (msg: ContactMessage) => {
+    if (!window.confirm(`Delete the message from ${msg.name}? This cannot be undone.`)) return;
+    await deleteMessage(msg._id);
+    if (openId === msg._id) setOpenId(null);
+  };
+
+  const markAllRead = () => list.filter((m) => !m.read).forEach((m) => updateMessage({ _id: m._id, read: true }));
+
+  if (isLoading) return <Loading label="LOADING MESSAGES" />;
+
   return (
-    <div className="space-y-12 animate-in fade-in duration-500">
-      <header className="border-b-4 border-black pb-8">
-        <h2 className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl uppercase tracking-tighter">INCOMING_COMMS</h2>
-        <p className="mt-4 text-xl font-bold uppercase text-[#FF5F1F]">
-          {list.filter(m => !m.read).length} UNREAD TRANSMISSIONS
-        </p>
-      </header>
+    <div className="space-y-5 animate-in fade-in duration-200">
+      <PageHeader
+        title="MESSAGES"
+        subtitle={`${list.length} total · ${unread} unread`}
+        actions={
+          unread > 0 ? (
+            <Button variant="ghost" onClick={markAllRead}>
+              MARK ALL READ
+            </Button>
+          ) : (
+            <Badge tone="success">ALL READ</Badge>
+          )
+        }
+      />
 
-      <div className="flex flex-col lg:flex-row gap-8">
-        {/* List View */}
-        <div className={`w-full ${viewing ? 'lg:w-1/3' : 'w-full'} space-y-4`}>
-          <div className="divide-y-4 divide-black border-4 border-black">
-            {list.length > 0 ? (
-              list.map((msg) => (
-                <button
-                  key={msg._id}
-                  onClick={() => openMessage(msg)}
-                  className={`w-full p-6 text-left transition-all relative overflow-hidden group ${
-                    viewing?._id === msg._id ? 'bg-[#FF5F1F] text-white' : 'bg-white hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <span className={`text-[10px] font-black uppercase ${viewing?._id === msg._id ? 'text-white' : 'text-[#FF5F1F]'}`}>
-                      {new Date(msg.date).toLocaleDateString()}
-                    </span>
-                    {!msg.read && <span className="h-2 w-2 bg-[#FF5F1F] border border-black animate-pulse"></span>}
-                  </div>
-                  <h4 className="text-xl font-black uppercase truncate">{msg.name}</h4>
-                  <p className={`text-xs font-bold opacity-60 truncate ${viewing?._id === msg._id ? 'text-white' : ''}`}>
-                    {msg.email}
-                  </p>
-                  <div className="mt-4 text-[10px] font-black opacity-30 group-hover:opacity-100 uppercase tracking-widest">
-                    OPEN_LOG →
-                  </div>
-                </button>
-              ))
-            ) : (
-              <div className="p-12 text-center bg-gray-50">
-                <p className="text-2xl font-black uppercase opacity-20">NO_TRANSMISSIONS_DETECTED</p>
+      {list.length === 0 ? (
+        <EmptyState label="No messages received yet" />
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
+          {/* Inbox */}
+          <div className={open ? 'lg:col-span-2' : 'lg:col-span-5'}>
+            <Panel title="INBOX" flush>
+              <div className="divide-y-2 divide-black/10 max-h-[70vh] overflow-y-auto">
+                {list.map((msg) => (
+                  <button
+                    key={msg._id}
+                    onClick={() => openMessage(msg)}
+                    className={`w-full px-4 py-3 text-left transition-colors ${
+                      openId === msg._id ? 'bg-[#FF5F1F] text-white' : 'hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span
+                        className={`text-[9px] font-black uppercase tracking-widest ${
+                          openId === msg._id ? 'text-white/70' : 'text-black/35'
+                        }`}
+                      >
+                        {new Date(msg.date).toLocaleDateString()}
+                      </span>
+                      {!msg.read && (
+                        <span className="h-2 w-2 bg-[#FF5F1F] border border-black shrink-0" aria-label="Unread" />
+                      )}
+                    </div>
+                    <p className="text-xs font-black uppercase tracking-tight truncate">{msg.name}</p>
+                    <p
+                      className={`text-[10px] font-bold truncate ${
+                        openId === msg._id ? 'text-white/70' : 'text-black/40'
+                      }`}
+                    >
+                      {msg.email}
+                    </p>
+                  </button>
+                ))}
               </div>
-            )}
+            </Panel>
           </div>
+
+          {/* Reading pane */}
+          {open && (
+            <div className="lg:col-span-3">
+              <Panel
+                title="MESSAGE"
+                actions={
+                  <>
+                    <Button size="sm" variant="ghost" onClick={() => setOpenId(null)}>
+                      CLOSE
+                    </Button>
+                    <Button size="sm" variant="danger" onClick={() => remove(open)}>
+                      DELETE
+                    </Button>
+                  </>
+                }
+              >
+                <div className="space-y-4">
+                  <div>
+                    <h2 className="text-base font-black uppercase tracking-tight">{open.name}</h2>
+                    <a
+                      href={`mailto:${open.email}`}
+                      className="text-xs font-bold text-[#FF5F1F] hover:underline break-all"
+                    >
+                      {open.email}
+                    </a>
+                  </div>
+
+                  <div className="border-l-4 border-black bg-gray-50 p-4 text-sm leading-relaxed whitespace-pre-wrap">
+                    {open.message}
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t-2 border-black/10">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-black/30">
+                      RECEIVED {new Date(open.date).toLocaleString()}
+                    </span>
+                    <a href={`mailto:${open.email}`}>
+                      <Button variant="primary" size="sm">
+                        REPLY BY EMAIL
+                      </Button>
+                    </a>
+                  </div>
+                </div>
+              </Panel>
+            </div>
+          )}
         </div>
-
-        {/* Message Content */}
-        {viewing && (
-          <div className="flex-1 border-4 border-black p-8 md:p-12 bg-white animate-in slide-in-from-right-10 duration-300">
-            <div className="flex justify-between items-start border-b-4 border-black pb-8 mb-8">
-               <div className="space-y-4">
-                  <span className="bg-black text-white px-4 py-1 text-[10px] font-black uppercase tracking-widest">
-                    ENTRY_ID_{viewing._id}
-                  </span>
-                  <h3 className="text-5xl font-black uppercase tracking-tighter leading-none">{viewing.name}</h3>
-                  <p className="text-2xl font-bold text-[#FF5F1F]">{viewing.email}</p>
-               </div>
-               <div className="flex flex-col gap-2">
-                  <button onClick={() => setViewing(null)} className="text-xs font-black hover:text-[#FF5F1F] uppercase">CLOSE_X</button>
-                  <button onClick={() => deleteMessage(viewing._id)} className="text-xs font-black text-red-600 hover:text-black uppercase">PURGE_!</button>
-               </div>
-            </div>
-
-            <div className="space-y-8">
-               <div className="text-xs font-black uppercase opacity-40">MESSAGE_PAYLOAD:</div>
-               <div className="p-8 border-l-8 border-black bg-gray-50 text-2xl font-medium leading-relaxed italic">
-                 "{viewing.message}"
-               </div>
-               <div className="pt-12 flex justify-between items-center text-[10px] font-black uppercase opacity-20">
-                  <span>RECEIVED: {new Date(viewing.date).toLocaleString()}</span>
-                  <span>STATUS: LOGGED_AND_ARCHIVED</span>
-               </div>
-            </div>
-
-            <div className="mt-12 pt-12 border-t-4 border-black">
-               <a
-                 href={`mailto:${viewing.email}`}
-                 className="inline-block bg-black text-white px-12 py-6 text-xl font-black uppercase tracking-widest hover:bg-[#FF5F1F] transition-all"
-               >
-                 RESPOND_VIA_MAIL
-               </a>
-            </div>
-          </div>
-        )}
-      </div>
+      )}
     </div>
   );
 };

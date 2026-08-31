@@ -7,4 +7,5 @@ export const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 export const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME;
 export const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY;
 export const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET;
-export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+// Checked server-side only (app/api/admin/login). Never expose this to the client.
+export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;

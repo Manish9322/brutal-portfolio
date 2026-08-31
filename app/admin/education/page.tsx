@@ -7,90 +7,221 @@ import {
   useUpdateEducationMutation,
   useDeleteEducationMutation,
 } from '@/services/api';
+import {
+  PageHeader,
+  Panel,
+  Field,
+  FormGrid,
+  Input,
+  Textarea,
+  Select,
+  Button,
+  Toggle,
+  Badge,
+  ListRow,
+  ListPanel,
+  EmptyState,
+  EditorShell,
+  StringListField,
+  Loading,
+} from '@/components/admin/ui';
 import type { Education } from '@/types';
 
 const EducationPage: React.FC = () => {
-  const { data: education = [] } = useGetEducationQuery();
+  const { data: education = [], isLoading } = useGetEducationQuery();
   const [addEducation] = useAddEducationMutation();
   const [updateEducation] = useUpdateEducationMutation();
   const [deleteEducation] = useDeleteEducationMutation();
 
   const [editing, setEditing] = useState<string | null>(null);
-  const [formData, setFormData] = useState<Partial<Education>>({});
+  const [form, setForm] = useState<Partial<Education>>({});
+  const [saving, setSaving] = useState(false);
 
   const list = education as Education[];
-
-  const handleEdit = (edu: Education) => {
-    setEditing(edu._id);
-    setFormData(edu);
-  };
+  const set = (patch: Partial<Education>) => setForm({ ...form, ...patch });
 
   const handleSave = async () => {
-    if (editing === 'new') {
-      await addEducation({ ...formData, visible: true });
-    } else {
-      await updateEducation({ ...formData, _id: editing });
+    setSaving(true);
+    try {
+      if (editing === 'new') await addEducation({ ...form, visible: form.visible ?? true });
+      else await updateEducation({ ...form, _id: editing });
+      setEditing(null);
+    } finally {
+      setSaving(false);
     }
-    setEditing(null);
   };
 
-  const deleteItem = (_id: string) => {
-    if (window.confirm('WIPE_HISTORY?')) {
-      deleteEducation(_id);
-    }
+  const remove = (item: Education) => {
+    if (window.confirm(`Delete "${item.degree}"? This cannot be undone.`)) deleteEducation(item._id);
   };
+
+  if (isLoading) return <Loading label="LOADING RECORDS" />;
 
   if (editing) {
     return (
-      <div className="space-y-8 animate-in slide-in-from-bottom-10 duration-300">
-        <div className="flex justify-between items-center border-b-4 border-black pb-4">
-          <h3 className="text-4xl font-black uppercase tracking-tighter">EDIT_EDUCATION</h3>
-          <button onClick={() => setEditing(null)} className="font-black hover:text-[#FF5F1F]">BACK</button>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase opacity-50">DEGREE/PROGRAM</label>
-            <input value={formData.degree || ''} onChange={e => setFormData({ ...formData, degree: e.target.value })} className="w-full border-4 border-black p-4 font-black text-xl uppercase outline-none focus:border-[#FF5F1F]" />
+      <EditorShell
+        title={editing === 'new' ? 'NEW ENTRY' : 'EDIT ENTRY'}
+        onCancel={() => setEditing(null)}
+        onSave={handleSave}
+        saving={saving}
+        extraActions={
+          <Toggle on={form.visible !== false} onChange={() => set({ visible: form.visible === false })} />
+        }
+      >
+        <Panel title="QUALIFICATION">
+          <FormGrid>
+            <Field label="DEGREE / PROGRAM" wide>
+              <Input value={form.degree ?? ''} onChange={(e) => set({ degree: e.target.value })} />
+            </Field>
+            <Field label="FIELD OF STUDY">
+              <Input value={form.field ?? ''} onChange={(e) => set({ field: e.target.value })} />
+            </Field>
+            <Field label="TYPE">
+              <Select
+                value={form.type ?? 'degree'}
+                onChange={(e) => set({ type: e.target.value as Education['type'] })}
+              >
+                <option value="degree">DEGREE</option>
+                <option value="certification">CERTIFICATION</option>
+                <option value="course">COURSE</option>
+              </Select>
+            </Field>
+            <Field label="INSTITUTION" wide>
+              <Input value={form.institution ?? ''} onChange={(e) => set({ institution: e.target.value })} />
+            </Field>
+            <Field label="LOCATION">
+              <Input value={form.location ?? ''} onChange={(e) => set({ location: e.target.value })} />
+            </Field>
+            <Field label="SCORE / GPA">
+              <Input value={form.gpa ?? ''} onChange={(e) => set({ gpa: e.target.value })} />
+            </Field>
+          </FormGrid>
+        </Panel>
+
+        <Panel title="DATES" description="Start and end drive the timeline order on /education">
+          <FormGrid>
+            <Field label="START" hint="YYYY-MM">
+              <Input
+                value={form.startDate ?? ''}
+                onChange={(e) => set({ startDate: e.target.value })}
+                placeholder="2023-08"
+              />
+            </Field>
+            <Field label="END" hint="YYYY-MM or Present">
+              <Input
+                value={form.endDate ?? ''}
+                onChange={(e) => set({ endDate: e.target.value })}
+                placeholder="2025-06"
+              />
+            </Field>
+            <Field label="PERIOD LABEL" hint="Free text fallback">
+              <Input value={form.period ?? ''} onChange={(e) => set({ period: e.target.value })} />
+            </Field>
+            <Field label="YEAR">
+              <Input value={form.year ?? ''} onChange={(e) => set({ year: e.target.value })} />
+            </Field>
+          </FormGrid>
+        </Panel>
+
+        <Panel title="DETAIL">
+          <div className="space-y-4">
+            <Field label="DESCRIPTION">
+              <Textarea
+                value={form.description ?? ''}
+                onChange={(e) => set({ description: e.target.value })}
+                rows={3}
+              />
+            </Field>
+            <StringListField
+              label="ACHIEVEMENTS"
+              value={form.achievements ?? []}
+              onChange={(achievements) => set({ achievements })}
+              placeholder="ADD AN ACHIEVEMENT..."
+            />
+            <FormGrid>
+              <Field label="INSTITUTION WEBSITE">
+                <Input
+                  value={form.website ?? ''}
+                  onChange={(e) => set({ website: e.target.value })}
+                  placeholder="https://"
+                />
+              </Field>
+              <Field label="CERTIFICATE URL">
+                <Input
+                  value={form.certificateUrl ?? ''}
+                  onChange={(e) => set({ certificateUrl: e.target.value })}
+                  placeholder="https://"
+                />
+              </Field>
+            </FormGrid>
           </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase opacity-50">INSTITUTION</label>
-            <input value={formData.institution || ''} onChange={e => setFormData({ ...formData, institution: e.target.value })} className="w-full border-4 border-black p-4 font-black text-xl uppercase outline-none focus:border-[#FF5F1F]" />
-          </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase opacity-50">YEAR</label>
-            <input value={formData.year || ''} onChange={e => setFormData({ ...formData, year: e.target.value })} className="w-full border-4 border-black p-4 font-black text-xl uppercase outline-none focus:border-[#FF5F1F]" />
-          </div>
-          <div className="md:col-span-2 space-y-2">
-            <label className="text-[10px] font-black uppercase opacity-50">DETAILS</label>
-            <textarea value={formData.description || ''} onChange={e => setFormData({ ...formData, description: e.target.value })} rows={3} className="w-full border-4 border-black p-4 font-bold text-lg outline-none focus:border-[#FF5F1F]" />
-          </div>
-        </div>
-        <button onClick={handleSave} className="w-full bg-black text-white py-8 text-2xl font-black uppercase tracking-widest hover:bg-[#FF5F1F] transition-colors">UPDATE_TRANSCRIPT</button>
-      </div>
+        </Panel>
+      </EditorShell>
     );
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex justify-between items-center border-b-4 border-black pb-4">
-        <h2 className="text-4xl font-black uppercase tracking-tighter">ACADEMIC_RECORD</h2>
-        <button onClick={() => { setEditing('new'); setFormData({}); }} className="bg-[#FF5F1F] text-white px-8 py-4 font-black uppercase hover:bg-black">ADD_EDU</button>
-      </div>
-      <div className="space-y-4">
-        {list.map((edu) => (
-          <div key={edu._id} className="border-4 border-black p-6 flex justify-between items-center hover:bg-gray-50 transition-colors">
-            <div>
-              <p className="text-xs font-black text-[#FF5F1F]">{edu.year}</p>
-              <h4 className="text-2xl font-black uppercase">{edu.degree}</h4>
-              <p className="font-bold opacity-70">{edu.institution}</p>
-            </div>
-            <div className="flex gap-2">
-              <button onClick={() => handleEdit(edu)} className="px-6 py-3 border-4 border-black font-black uppercase hover:bg-black hover:text-white transition-all">EDIT</button>
-              <button onClick={() => deleteItem(edu._id)} className="px-6 py-3 border-4 border-black font-black uppercase hover:bg-red-500 hover:text-white transition-all">X</button>
-            </div>
-          </div>
-        ))}
-      </div>
+    <div className="space-y-5 animate-in fade-in duration-200">
+      <PageHeader
+        title="EDUCATION"
+        subtitle="Degrees and certifications on the timeline"
+        actions={
+          <Button
+            variant="primary"
+            onClick={() => {
+              setEditing('new');
+              setForm({ type: 'degree', visible: true, achievements: [] });
+            }}
+          >
+            + NEW ENTRY
+          </Button>
+        }
+      />
+
+      {list.length === 0 ? (
+        <EmptyState label="No education entries yet" />
+      ) : (
+        <ListPanel>
+          {list.map((edu) => (
+            <ListRow
+              key={edu._id}
+              dimmed={!edu.visible}
+              eyebrow={edu.period || edu.year}
+              title={edu.degree}
+              meta={
+                <span className="flex flex-wrap items-center gap-2">
+                  <Badge tone={edu.type === 'certification' ? 'accent' : 'muted'}>
+                    {edu.type ?? 'degree'}
+                  </Badge>
+                  <span>{edu.institution}</span>
+                  {edu.gpa && <span>· SCORE {edu.gpa}</span>}
+                </span>
+              }
+              actions={
+                <>
+                  <Toggle
+                    on={edu.visible}
+                    onChange={() => updateEducation({ _id: edu._id, visible: !edu.visible })}
+                  />
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    onClick={() => {
+                      setEditing(edu._id);
+                      setForm(edu);
+                    }}
+                  >
+                    EDIT
+                  </Button>
+                  <Button size="sm" variant="danger" onClick={() => remove(edu)}>
+                    DELETE
+                  </Button>
+                </>
+              }
+            />
+          ))}
+        </ListPanel>
+      )}
     </div>
   );
 };

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useGetProfileQuery } from '@/services/api';
+import { TOP_BAR_HEIGHT } from '@/components/TopBar';
 
 const LINKS = [
   { name: 'WORK', href: '/#work' },
@@ -35,11 +36,11 @@ const Navigation: React.FC = () => {
   }, [isOpen]);
 
   return (
-    <nav className="sticky top-0 z-50 bg-white border-b-4 border-black">
-      <div className="max-w-[1800px] mx-auto flex justify-between items-stretch">
+    <nav className={`sticky top-0 z-50 bg-white border-b-4 border-black ${TOP_BAR_HEIGHT}`}>
+      <div className="h-full max-w-[1800px] mx-auto flex justify-between items-stretch">
         <Link
           href="/"
-          className="p-4 sm:p-6 border-r-4 border-black font-heading font-bold text-lg sm:text-2xl tracking-tighter hover:bg-black hover:text-white transition-colors uppercase flex items-center"
+          className="px-4 sm:px-6 border-r-4 border-black font-heading font-bold text-lg sm:text-2xl tracking-tighter hover:bg-black hover:text-white transition-colors uppercase flex items-center"
         >
           {profile?.name ?? ''}.V1
         </Link>

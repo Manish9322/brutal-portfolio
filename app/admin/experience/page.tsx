@@ -5,119 +5,244 @@ import {
   useGetExperiencesQuery,
   useAddExperienceMutation,
   useUpdateExperienceMutation,
+  useDeleteExperienceMutation,
   useUpdateExperienceOrderMutation,
 } from '@/services/api';
+import {
+  PageHeader,
+  Panel,
+  Field,
+  FormGrid,
+  Input,
+  Textarea,
+  Button,
+  IconButton,
+  Toggle,
+  ListRow,
+  ListPanel,
+  EmptyState,
+  EditorShell,
+  StringListField,
+  NamedItemListField,
+  Loading,
+} from '@/components/admin/ui';
 import type { Experience } from '@/types';
 
 const ExperiencePage: React.FC = () => {
-  const { data: experiences = [] } = useGetExperiencesQuery();
+  const { data: experiences = [], isLoading } = useGetExperiencesQuery();
   const [addExperience] = useAddExperienceMutation();
   const [updateExperience] = useUpdateExperienceMutation();
-  const [updateExperienceOrder] = useUpdateExperienceOrderMutation();
+  const [deleteExperience] = useDeleteExperienceMutation();
+  const [updateOrder] = useUpdateExperienceOrderMutation();
 
   const [editing, setEditing] = useState<string | null>(null);
-  const [formData, setFormData] = useState<Partial<Experience>>({});
+  const [form, setForm] = useState<Partial<Experience>>({});
+  const [saving, setSaving] = useState(false);
 
   const list = experiences as Experience[];
-
-  const handleEdit = (exp: Experience) => {
-    setEditing(exp._id);
-    setFormData(exp);
-  };
+  const set = (patch: Partial<Experience>) => setForm({ ...form, ...patch });
 
   const handleSave = async () => {
-    if (editing === 'new') {
-      await addExperience({ ...formData, visible: true });
-    } else {
-      await updateExperience({ ...formData, _id: editing });
+    setSaving(true);
+    try {
+      // Entries added in the browser carry a placeholder id Mongoose can't cast.
+      const projects = (form.projects ?? []).map(({ _id, ...rest }: any) =>
+        typeof _id === 'string' && _id.startsWith('new-') ? rest : { _id, ...rest }
+      );
+      const payload = { ...form, projects };
+      if (editing === 'new') await addExperience({ ...payload, visible: form.visible ?? true });
+      else await updateExperience({ ...payload, _id: editing });
+      setEditing(null);
+    } finally {
+      setSaving(false);
     }
-    setEditing(null);
   };
 
-  const toggleVisible = (exp: Experience) => {
-    updateExperience({ _id: exp._id, visible: !exp.visible });
-  };
-
-  const move = (index: number, direction: 'up' | 'down') => {
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    if (targetIndex < 0 || targetIndex >= list.length) return;
-
+  const move = (index: number, delta: -1 | 1) => {
+    const target = index + delta;
+    if (target < 0 || target >= list.length) return;
     const reordered = [...list];
-    [reordered[index], reordered[targetIndex]] = [reordered[targetIndex], reordered[index]];
-    updateExperienceOrder({ orderedIds: reordered.map((e) => e._id) });
+    [reordered[index], reordered[target]] = [reordered[target], reordered[index]];
+    updateOrder({ orderedIds: reordered.map((e) => e._id) });
   };
+
+  const remove = (item: Experience) => {
+    if (window.confirm(`Delete "${item.role} @ ${item.company}"? This cannot be undone.`))
+      deleteExperience(item._id);
+  };
+
+  if (isLoading) return <Loading label="LOADING ROLES" />;
 
   if (editing) {
     return (
-      <div className="space-y-8 animate-in slide-in-from-bottom-10 duration-300">
-        <div className="flex justify-between items-center border-b-4 border-black pb-4">
-          <h3 className="text-4xl font-black uppercase tracking-tighter">{editing === 'new' ? 'NEW_EXPERIENCE' : 'EDIT_EXPERIENCE'}</h3>
-          <button onClick={() => setEditing(null)} className="font-black hover:text-[#FF5F1F]">CANCEL</button>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <EditorShell
+        title={editing === 'new' ? 'NEW ROLE' : 'EDIT ROLE'}
+        onCancel={() => setEditing(null)}
+        onSave={handleSave}
+        saving={saving}
+        extraActions={
+          <Toggle on={form.visible !== false} onChange={() => set({ visible: form.visible === false })} />
+        }
+      >
+        <Panel title="ROLE">
+          <FormGrid>
+            <Field label="POSITION">
+              <Input value={form.role ?? ''} onChange={(e) => set({ role: e.target.value })} />
+            </Field>
+            <Field label="COMPANY">
+              <Input value={form.company ?? ''} onChange={(e) => set({ company: e.target.value })} />
+            </Field>
+            <Field label="LOCATION">
+              <Input value={form.location ?? ''} onChange={(e) => set({ location: e.target.value })} />
+            </Field>
+            <Field label="INDUSTRY">
+              <Input value={form.industry ?? ''} onChange={(e) => set({ industry: e.target.value })} />
+            </Field>
+            <Field label="TEAM SIZE">
+              <Input value={form.teamSize ?? ''} onChange={(e) => set({ teamSize: e.target.value })} />
+            </Field>
+            <Field label="COMPANY WEBSITE">
+              <Input
+                value={form.website ?? ''}
+                onChange={(e) => set({ website: e.target.value })}
+                placeholder="https://"
+              />
+            </Field>
+          </FormGrid>
+        </Panel>
+
+        <Panel title="DATES">
+          <FormGrid>
+            <Field label="START" hint="YYYY-MM">
+              <Input
+                value={form.startDate ?? ''}
+                onChange={(e) => set({ startDate: e.target.value })}
+                placeholder="2025-01"
+              />
+            </Field>
+            <Field label="END" hint="Leave blank or 'Present' for current">
+              <Input
+                value={form.endDate ?? ''}
+                onChange={(e) => set({ endDate: e.target.value })}
+                placeholder="Present"
+              />
+            </Field>
+            <Field label="PERIOD LABEL" hint="Free text fallback" wide>
+              <Input value={form.period ?? ''} onChange={(e) => set({ period: e.target.value })} />
+            </Field>
+          </FormGrid>
+        </Panel>
+
+        <Panel title="DETAIL">
           <div className="space-y-4">
-            <label className="text-xs font-black uppercase">ROLE TITLE</label>
-            <input
-              value={formData.role || ''}
-              onChange={e => setFormData({ ...formData, role: e.target.value })}
-              className="w-full border-4 border-black p-4 font-bold text-xl uppercase focus:border-[#FF5F1F] outline-none"
+            <Field label="DESCRIPTION">
+              <Textarea
+                value={form.description ?? ''}
+                onChange={(e) => set({ description: e.target.value })}
+                rows={3}
+              />
+            </Field>
+            <StringListField
+              label="TECHNOLOGIES"
+              value={form.technologies ?? []}
+              onChange={(technologies) => set({ technologies })}
+              placeholder="ADD A TECHNOLOGY..."
+              caps
+            />
+            <StringListField
+              label="RESPONSIBILITIES"
+              value={form.responsibilities ?? []}
+              onChange={(responsibilities) => set({ responsibilities })}
+              placeholder="ADD A RESPONSIBILITY..."
+              hint="Shown as MANDATE"
+            />
+            <StringListField
+              label="ACHIEVEMENTS"
+              value={form.achievements ?? []}
+              onChange={(achievements) => set({ achievements })}
+              placeholder="ADD AN ACHIEVEMENT..."
+              hint="Shown as OUTPUT"
             />
           </div>
-          <div className="space-y-4">
-            <label className="text-xs font-black uppercase">COMPANY</label>
-            <input
-              value={formData.company || ''}
-              onChange={e => setFormData({ ...formData, company: e.target.value })}
-              className="w-full border-4 border-black p-4 font-bold text-xl uppercase focus:border-[#FF5F1F] outline-none"
-            />
-          </div>
-          <div className="space-y-4">
-            <label className="text-xs font-black uppercase">PERIOD</label>
-            <input
-              value={formData.period || ''}
-              onChange={e => setFormData({ ...formData, period: e.target.value })}
-              className="w-full border-4 border-black p-4 font-bold text-xl uppercase focus:border-[#FF5F1F] outline-none"
-            />
-          </div>
-          <div className="space-y-4 md:col-span-2">
-            <label className="text-xs font-black uppercase">DESCRIPTION</label>
-            <textarea
-              value={formData.description || ''}
-              onChange={e => setFormData({ ...formData, description: e.target.value })}
-              rows={4}
-              className="w-full border-4 border-black p-4 font-bold text-lg focus:border-[#FF5F1F] outline-none"
-            />
-          </div>
-        </div>
-        <button onClick={handleSave} className="w-full bg-[#FF5F1F] text-white py-8 text-2xl font-black uppercase tracking-widest hover:bg-black transition-all">
-          PERSIST_STATE
-        </button>
-      </div>
+        </Panel>
+
+        <Panel title="PRODUCTS SHIPPED">
+          <NamedItemListField
+            label="PRODUCTS"
+            value={(form.projects ?? []) as any}
+            onChange={(projects) => set({ projects: projects as Experience['projects'] })}
+            namePlaceholder="PRODUCT NAME"
+            addLabel="ADD PRODUCT"
+          />
+        </Panel>
+      </EditorShell>
     );
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex justify-between items-center border-b-4 border-black pb-4">
-        <h2 className="text-4xl font-black uppercase tracking-tighter">EXPERIENCE_LOG</h2>
-        <button onClick={() => { setEditing('new'); setFormData({}); }} className="bg-black text-white px-8 py-4 font-black uppercase hover:bg-[#FF5F1F]">ADD_NEW</button>
-      </div>
-      <div className="divide-y-4 divide-black border-4 border-black">
-        {list.map((exp, idx) => (
-          <div key={exp._id} className={`p-6 flex justify-between items-center ${!exp.visible ? 'opacity-30' : ''}`}>
-            <div>
-              <p className="text-xs font-black text-[#FF5F1F]">{exp.period}</p>
-              <h4 className="text-2xl font-black uppercase">{exp.role} @ {exp.company}</h4>
-            </div>
-            <div className="flex items-center gap-2">
-               <button onClick={() => move(idx, 'up')} className="p-2 border-2 border-black hover:bg-gray-100">↑</button>
-               <button onClick={() => move(idx, 'down')} className="p-2 border-2 border-black hover:bg-gray-100">↓</button>
-               <button onClick={() => toggleVisible(exp)} className={`p-2 border-2 border-black uppercase text-xs font-black ${exp.visible ? 'bg-green-100' : 'bg-red-100'}`}>{exp.visible ? 'HIDE' : 'SHOW'}</button>
-               <button onClick={() => handleEdit(exp)} className="px-4 py-2 bg-black text-white text-xs font-black uppercase hover:bg-[#FF5F1F]">EDIT</button>
-            </div>
-          </div>
-        ))}
-      </div>
+    <div className="space-y-5 animate-in fade-in duration-200">
+      <PageHeader
+        title="EXPERIENCE"
+        subtitle="Roles shown on the homepage and /experience"
+        actions={
+          <Button
+            variant="primary"
+            onClick={() => {
+              setEditing('new');
+              setForm({ visible: true, technologies: [], responsibilities: [], achievements: [], projects: [] });
+            }}
+          >
+            + NEW ROLE
+          </Button>
+        }
+      />
+
+      {list.length === 0 ? (
+        <EmptyState label="No roles yet" />
+      ) : (
+        <ListPanel>
+          {list.map((exp, index) => (
+            <ListRow
+              key={exp._id}
+              dimmed={!exp.visible}
+              eyebrow={exp.period}
+              title={`${exp.role} @ ${exp.company}`}
+              meta={[exp.location, exp.industry].filter(Boolean).join(' · ')}
+              actions={
+                <>
+                  <IconButton aria-label="Move up" onClick={() => move(index, -1)} disabled={index === 0}>
+                    ↑
+                  </IconButton>
+                  <IconButton
+                    aria-label="Move down"
+                    onClick={() => move(index, 1)}
+                    disabled={index === list.length - 1}
+                  >
+                    ↓
+                  </IconButton>
+                  <Toggle
+                    on={exp.visible}
+                    onChange={() => updateExperience({ _id: exp._id, visible: !exp.visible })}
+                  />
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    onClick={() => {
+                      setEditing(exp._id);
+                      setForm(exp);
+                    }}
+                  >
+                    EDIT
+                  </Button>
+                  <Button size="sm" variant="danger" onClick={() => remove(exp)}>
+                    DELETE
+                  </Button>
+                </>
+              }
+            />
+          ))}
+        </ListPanel>
+      )}
     </div>
   );
 };

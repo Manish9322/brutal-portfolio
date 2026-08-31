@@ -9,102 +9,199 @@ import {
   useUpdateGalleryOrderMutation,
 } from '@/services/api';
 import ImageField from '@/components/admin/ImageField';
+import {
+  PageHeader,
+  Panel,
+  Field,
+  FormGrid,
+  Input,
+  Textarea,
+  Button,
+  IconButton,
+  Toggle,
+  ListRow,
+  ListPanel,
+  EmptyState,
+  EditorShell,
+  Loading,
+  Badge,
+} from '@/components/admin/ui';
 import type { GalleryItem } from '@/types';
+import { cdn } from '@/lib/image-url';
 
 const GalleryPage: React.FC = () => {
-  const { data: gallery = [] } = useGetGalleryQuery();
-  const [addGalleryItem] = useAddGalleryItemMutation();
-  const [updateGalleryItem] = useUpdateGalleryItemMutation();
-  const [deleteGalleryItem] = useDeleteGalleryItemMutation();
-  const [updateGalleryOrder] = useUpdateGalleryOrderMutation();
+  const { data: gallery = [], isLoading } = useGetGalleryQuery();
+  const [addItem] = useAddGalleryItemMutation();
+  const [updateItem] = useUpdateGalleryItemMutation();
+  const [deleteItem] = useDeleteGalleryItemMutation();
+  const [updateOrder] = useUpdateGalleryOrderMutation();
 
   const [editing, setEditing] = useState<string | null>(null);
-  const [formData, setFormData] = useState<Partial<GalleryItem>>({});
+  const [form, setForm] = useState<Partial<GalleryItem>>({});
+  const [saving, setSaving] = useState(false);
 
   const list = (gallery as GalleryItem[]).slice().sort((a, b) => a.order - b.order);
-
-  const handleEdit = (item: GalleryItem) => {
-    setEditing(item._id);
-    setFormData(item);
-  };
+  const categories = Array.from(new Set(list.map((g) => g.category).filter(Boolean)));
+  const set = (patch: Partial<GalleryItem>) => setForm({ ...form, ...patch });
 
   const handleSave = async () => {
-    if (editing === 'new') {
-      await addGalleryItem({ ...formData, visible: true });
-    } else {
-      await updateGalleryItem({ ...formData, _id: editing });
-    }
-    setEditing(null);
-  };
-
-  const deleteItem = (_id: string) => {
-    if (window.confirm('PURGE_IMAGE?')) {
-      deleteGalleryItem(_id);
+    setSaving(true);
+    try {
+      if (editing === 'new') await addItem({ ...form, visible: form.visible ?? true });
+      else await updateItem({ ...form, _id: editing });
+      setEditing(null);
+    } finally {
+      setSaving(false);
     }
   };
 
-  const move = (idx: number, dir: 'up' | 'down') => {
-    const target = dir === 'up' ? idx - 1 : idx + 1;
+  const move = (index: number, delta: -1 | 1) => {
+    const target = index + delta;
     if (target < 0 || target >= list.length) return;
-
     const reordered = [...list];
-    [reordered[idx], reordered[target]] = [reordered[target], reordered[idx]];
-    updateGalleryOrder({ orderedIds: reordered.map((g) => g._id) });
+    [reordered[index], reordered[target]] = [reordered[target], reordered[index]];
+    updateOrder({ orderedIds: reordered.map((g) => g._id) });
   };
+
+  const remove = (item: GalleryItem) => {
+    if (window.confirm('Delete this frame? This cannot be undone.')) deleteItem(item._id);
+  };
+
+  if (isLoading) return <Loading label="LOADING FRAMES" />;
 
   if (editing) {
     return (
-      <div className="space-y-8 animate-in zoom-in-95 duration-200">
-        <div className="flex justify-between items-center border-b-4 border-black pb-4">
-          <h3 className="text-4xl font-black uppercase tracking-tighter">GALLERY_ASSET_CFG</h3>
-          <button onClick={() => setEditing(null)} className="font-black hover:text-[#FF5F1F]">X_EXIT</button>
+      <EditorShell
+        title={editing === 'new' ? 'NEW FRAME' : 'EDIT FRAME'}
+        onCancel={() => setEditing(null)}
+        onSave={handleSave}
+        saving={saving}
+        extraActions={
+          <Toggle on={form.visible !== false} onChange={() => set({ visible: form.visible === false })} />
+        }
+      >
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <Panel title="IMAGE">
+            <ImageField
+              label="FRAME"
+              module="gallery"
+              aspect="square"
+              value={form.url ?? ''}
+              onChange={(url) => set({ url })}
+            />
+          </Panel>
+
+          <Panel title="DETAILS">
+            <div className="space-y-4">
+              <Field label="CAPTION">
+                <Textarea
+                  value={form.caption ?? ''}
+                  onChange={(e) => set({ caption: e.target.value })}
+                  rows={3}
+                />
+              </Field>
+              <Field
+                label="SET / CATEGORY"
+                hint={categories.length ? `Existing: ${categories.slice(0, 4).join(', ')}` : 'Groups frames into albums'}
+              >
+                <Input
+                  value={form.category ?? ''}
+                  onChange={(e) => set({ category: e.target.value })}
+                  list="gallery-categories"
+                />
+                <datalist id="gallery-categories">
+                  {categories.map((c) => (
+                    <option key={c} value={c} />
+                  ))}
+                </datalist>
+              </Field>
+              <Field label="DESCRIPTION" hint="Optional">
+                <Textarea
+                  value={form.description ?? ''}
+                  onChange={(e) => set({ description: e.target.value })}
+                  rows={2}
+                />
+              </Field>
+            </div>
+          </Panel>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-           <ImageField
-             label="FRAME_IMAGE"
-             module="gallery"
-             aspect="square"
-             value={formData.url || ''}
-             onChange={(url) => setFormData({ ...formData, url })}
-           />
-           <div className="space-y-2">
-             <label className="text-[10px] font-black uppercase">CAPTION (STRICT_TEXT)</label>
-             <textarea value={formData.caption || ''} onChange={e => setFormData({ ...formData, caption: e.target.value })} rows={6} className="w-full border-4 border-black p-4 font-black text-xl uppercase outline-none focus:border-[#FF5F1F]" />
-           </div>
-        </div>
-        <button onClick={handleSave} className="w-full bg-black text-white py-8 text-2xl font-black uppercase tracking-widest hover:bg-[#FF5F1F] transition-all">SYNC_VAULT</button>
-      </div>
+      </EditorShell>
     );
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex justify-between items-center border-b-4 border-black pb-4">
-        <h2 className="text-4xl font-black uppercase tracking-tighter">GALLERY_ASSETS</h2>
-        <button onClick={() => { setEditing('new'); setFormData({ caption: '' }); }} className="bg-black text-white px-8 py-4 font-black uppercase hover:bg-[#FF5F1F]">NEW_ENTRY</button>
-      </div>
-      <div className="grid grid-cols-1 gap-4">
-        {list.map((item, i) => (
-          <div key={item._id} className={`p-4 border-4 border-black flex justify-between items-center bg-white ${!item.visible ? 'opacity-30' : ''}`}>
-             <div className="flex items-center gap-4">
-                <div className="w-20 h-20 border-2 border-black overflow-hidden"><img src={item.url} className="w-full h-full object-cover" alt="" /></div>
-                <div className="max-w-md">
-                   <p className="text-xs font-black uppercase truncate">{item.caption}</p>
-                   <span className="text-[10px] font-bold opacity-40">POS: {item.order}</span>
+    <div className="space-y-5 animate-in fade-in duration-200">
+      <PageHeader
+        title="GALLERY"
+        subtitle={`${list.length} frames across ${categories.length || 1} sets`}
+        actions={
+          <Button
+            variant="primary"
+            onClick={() => {
+              setEditing('new');
+              setForm({ visible: true, caption: '', category: '' });
+            }}
+          >
+            + NEW FRAME
+          </Button>
+        }
+      />
+
+      {list.length === 0 ? (
+        <EmptyState label="No gallery frames yet" />
+      ) : (
+        <ListPanel>
+          {list.map((item, index) => (
+            <ListRow
+              key={item._id}
+              dimmed={!item.visible}
+              media={
+                <div className="w-14 h-14 border-2 border-black overflow-hidden bg-gray-100">
+                  <img src={cdn(item.url, { width: 120 })} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                 </div>
-             </div>
-             <div className="flex gap-2">
-                <button onClick={() => move(i, 'up')} className="p-2 border-2 border-black">↑</button>
-                <button onClick={() => move(i, 'down')} className="p-2 border-2 border-black">↓</button>
-                <button onClick={() => updateGalleryItem({ _id: item._id, visible: !item.visible })} className={`px-4 py-2 border-2 border-black text-[10px] font-black ${item.visible ? 'bg-green-100' : 'bg-red-100'}`}>
-                  {item.visible ? 'LIVE' : 'HIDDEN'}
-                </button>
-                <button onClick={() => handleEdit(item)} className="px-6 py-2 bg-black text-white font-black text-xs uppercase hover:bg-[#FF5F1F]">EDIT</button>
-                <button onClick={() => deleteItem(item._id)} className="px-4 py-2 border-2 border-black text-red-600 font-black">X</button>
-             </div>
-          </div>
-        ))}
-      </div>
+              }
+              title={item.caption || 'UNTITLED'}
+              meta={
+                <span className="flex flex-wrap items-center gap-2">
+                  <span className="tabular-nums">#{index + 1}</span>
+                  {item.category && <Badge tone="muted">{item.category}</Badge>}
+                </span>
+              }
+              actions={
+                <>
+                  <IconButton aria-label="Move up" onClick={() => move(index, -1)} disabled={index === 0}>
+                    ↑
+                  </IconButton>
+                  <IconButton
+                    aria-label="Move down"
+                    onClick={() => move(index, 1)}
+                    disabled={index === list.length - 1}
+                  >
+                    ↓
+                  </IconButton>
+                  <Toggle
+                    on={item.visible}
+                    onChange={() => updateItem({ _id: item._id, visible: !item.visible })}
+                  />
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    onClick={() => {
+                      setEditing(item._id);
+                      setForm(item);
+                    }}
+                  >
+                    EDIT
+                  </Button>
+                  <Button size="sm" variant="danger" onClick={() => remove(item)}>
+                    DELETE
+                  </Button>
+                </>
+              }
+            />
+          ))}
+        </ListPanel>
+      )}
     </div>
   );
 };
