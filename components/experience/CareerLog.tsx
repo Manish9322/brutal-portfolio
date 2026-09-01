@@ -63,7 +63,7 @@ const CareerLog: React.FC = () => {
                     {String(all.length - idx).padStart(2, '0')}
                   </span>
                   {current && (
-                    <span className="bg-[#FF5F1F] text-white px-3 py-1 text-[10px] font-black uppercase tracking-widest animate-pulse whitespace-nowrap">
+                    <span className="bg-[#FF5F1F] text-white px-3 py-1 text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
                       ● ACTIVE
                     </span>
                   )}

@@ -9,6 +9,9 @@ import {
 } from '@/services/api';
 import { useDebouncedDraft } from '@/hooks/use-debounced-draft';
 import { PageHeader, Panel, Field, FormGrid, Input, Textarea, Loading, Badge } from '@/components/admin/ui';
+import { LIMITS } from '@/lib/field-limits';
+
+const L = LIMITS.settings;
 
 const SettingsPage: React.FC = () => {
   const { data: remoteAbout } = useGetAboutQuery();
@@ -40,14 +43,14 @@ const SettingsPage: React.FC = () => {
 
       <Panel title="ABOUT MANIFESTO" description="Currently hidden on the homepage">
         <div className="space-y-4">
-          <Field label="HEADING">
+          <Field label="HEADING" max={L.manifestoHeading} value={about.manifestoHeading ?? ''}>
             <Input
               value={about.manifestoHeading ?? ''}
               onChange={(e) => setAbout({ ...about, manifestoHeading: e.target.value.toUpperCase() })}
               caps
             />
           </Field>
-          <Field label="DESCRIPTION">
+          <Field label="DESCRIPTION" max={L.manifestoDescription} value={about.description ?? ''}>
             <Textarea
               value={about.description ?? ''}
               onChange={(e) => setAbout({ ...about, description: e.target.value })}
@@ -59,13 +62,13 @@ const SettingsPage: React.FC = () => {
 
       <Panel title="SYSTEM INFO" description="Shown in the site footer">
         <FormGrid>
-          <Field label="VERSION">
+          <Field label="VERSION" max={L.version} value={settings.version ?? ''}>
             <Input
               value={settings.version ?? ''}
               onChange={(e) => setSettings({ ...settings, version: e.target.value })}
             />
           </Field>
-          <Field label="MARQUEE TEXT" wide>
+          <Field label="MARQUEE TEXT" wide max={L.marqueeText} value={settings.marqueeText ?? ''}>
             <Input
               value={settings.marqueeText ?? ''}
               onChange={(e) => setSettings({ ...settings, marqueeText: e.target.value.toUpperCase() })}

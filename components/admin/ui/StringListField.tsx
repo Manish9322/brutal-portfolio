@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button, IconButton, Input, Label } from './primitives';
+import { Button, CharCount, IconButton, Input, Label } from './primitives';
 
 /**
  * Editor for a list of plain strings — challenges, solutions, achievements,
@@ -17,8 +17,10 @@ const StringListField: React.FC<{
   placeholder?: string;
   /** Uppercase entries as they are added — used for tech/skill tags. */
   caps?: boolean;
+  /** Character budget per entry. */
+  max?: number;
   hint?: string;
-}> = ({ label, value, onChange, placeholder = 'ADD AN ENTRY...', caps, hint }) => {
+}> = ({ label, value, onChange, placeholder = 'ADD AN ENTRY...', caps, max, hint }) => {
   const [draft, setDraft] = useState('');
   const items = value ?? [];
 
@@ -48,7 +50,10 @@ const StringListField: React.FC<{
         <Label>
           {label} [{items.length}]
         </Label>
-        {hint && <span className="text-[9px] font-bold uppercase tracking-wide text-black/30">{hint}</span>}
+        <span className="flex items-baseline gap-3">
+          {hint && <span className="text-[9px] font-bold uppercase tracking-wide text-black/30">{hint}</span>}
+          {max != null && <CharCount length={draft.length} max={max} />}
+        </span>
       </div>
 
       {items.length > 0 && (
@@ -58,12 +63,21 @@ const StringListField: React.FC<{
               <span className="mt-2 w-6 shrink-0 text-[10px] font-black tabular-nums text-black/30">
                 {String(index + 1).padStart(2, '0')}
               </span>
-              <Input
-                value={item}
-                onChange={(e) => update(index, e.target.value)}
-                caps={caps}
-                className="flex-1"
-              />
+              <span className="flex-1 min-w-0 space-y-1">
+                <Input
+                  value={item}
+                  onChange={(e) => update(index, e.target.value)}
+                  caps={caps}
+                  maxLength={max}
+                />
+                {/* Only surfaced once the entry is close to the cap — a counter on
+                    every row would bury the entries themselves in numbers. */}
+                {max != null && item.length >= max * 0.9 && (
+                  <span className="block text-right">
+                    <CharCount length={item.length} max={max} />
+                  </span>
+                )}
+              </span>
               <IconButton aria-label="Move up" onClick={() => move(index, -1)} disabled={index === 0}>
                 ↑
               </IconButton>
@@ -94,6 +108,7 @@ const StringListField: React.FC<{
           }}
           placeholder={placeholder}
           caps={caps}
+          maxLength={max}
           className="flex-1"
         />
         <Button variant="primary" onClick={add} disabled={!draft.trim()}>

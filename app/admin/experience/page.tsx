@@ -27,6 +27,9 @@ import {
   Loading,
 } from '@/components/admin/ui';
 import type { Experience } from '@/types';
+import { LIMITS } from '@/lib/field-limits';
+
+const L = LIMITS.experience;
 
 const ExperiencePage: React.FC = () => {
   const { data: experiences = [], isLoading } = useGetExperiencesQuery();
@@ -86,22 +89,22 @@ const ExperiencePage: React.FC = () => {
       >
         <Panel title="ROLE">
           <FormGrid>
-            <Field label="POSITION">
+            <Field label="POSITION" max={L.role} value={form.role ?? ''}>
               <Input value={form.role ?? ''} onChange={(e) => set({ role: e.target.value })} />
             </Field>
-            <Field label="COMPANY">
+            <Field label="COMPANY" max={L.company} value={form.company ?? ''}>
               <Input value={form.company ?? ''} onChange={(e) => set({ company: e.target.value })} />
             </Field>
-            <Field label="LOCATION">
+            <Field label="LOCATION" max={L.location} value={form.location ?? ''}>
               <Input value={form.location ?? ''} onChange={(e) => set({ location: e.target.value })} />
             </Field>
-            <Field label="INDUSTRY">
+            <Field label="INDUSTRY" max={L.industry} value={form.industry ?? ''}>
               <Input value={form.industry ?? ''} onChange={(e) => set({ industry: e.target.value })} />
             </Field>
-            <Field label="TEAM SIZE">
+            <Field label="TEAM SIZE" max={L.teamSize} value={form.teamSize ?? ''}>
               <Input value={form.teamSize ?? ''} onChange={(e) => set({ teamSize: e.target.value })} />
             </Field>
-            <Field label="COMPANY WEBSITE">
+            <Field label="COMPANY WEBSITE" max={L.url} value={form.website ?? ''}>
               <Input
                 value={form.website ?? ''}
                 onChange={(e) => set({ website: e.target.value })}
@@ -113,21 +116,21 @@ const ExperiencePage: React.FC = () => {
 
         <Panel title="DATES">
           <FormGrid>
-            <Field label="START" hint="YYYY-MM">
+            <Field label="START" hint="YYYY-MM" max={L.date} value={form.startDate ?? ''}>
               <Input
                 value={form.startDate ?? ''}
                 onChange={(e) => set({ startDate: e.target.value })}
                 placeholder="2025-01"
               />
             </Field>
-            <Field label="END" hint="Leave blank or 'Present' for current">
+            <Field label="END" hint="Leave blank or 'Present' for current" max={L.date} value={form.endDate ?? ''}>
               <Input
                 value={form.endDate ?? ''}
                 onChange={(e) => set({ endDate: e.target.value })}
                 placeholder="Present"
               />
             </Field>
-            <Field label="PERIOD LABEL" hint="Free text fallback" wide>
+            <Field label="PERIOD LABEL" hint="Free text fallback" wide max={L.period} value={form.period ?? ''}>
               <Input value={form.period ?? ''} onChange={(e) => set({ period: e.target.value })} />
             </Field>
           </FormGrid>
@@ -135,7 +138,7 @@ const ExperiencePage: React.FC = () => {
 
         <Panel title="DETAIL">
           <div className="space-y-4">
-            <Field label="DESCRIPTION">
+            <Field label="DESCRIPTION" max={L.description} value={form.description ?? ''}>
               <Textarea
                 value={form.description ?? ''}
                 onChange={(e) => set({ description: e.target.value })}
@@ -148,12 +151,14 @@ const ExperiencePage: React.FC = () => {
               onChange={(technologies) => set({ technologies })}
               placeholder="ADD A TECHNOLOGY..."
               caps
+              max={L.technology}
             />
             <StringListField
               label="RESPONSIBILITIES"
               value={form.responsibilities ?? []}
               onChange={(responsibilities) => set({ responsibilities })}
               placeholder="ADD A RESPONSIBILITY..."
+              max={L.responsibility}
               hint="Shown as MANDATE"
             />
             <StringListField
@@ -161,6 +166,7 @@ const ExperiencePage: React.FC = () => {
               value={form.achievements ?? []}
               onChange={(achievements) => set({ achievements })}
               placeholder="ADD AN ACHIEVEMENT..."
+              max={L.achievement}
               hint="Shown as OUTPUT"
             />
           </div>
@@ -173,6 +179,8 @@ const ExperiencePage: React.FC = () => {
             onChange={(projects) => set({ projects: projects as Experience['projects'] })}
             namePlaceholder="PRODUCT NAME"
             addLabel="ADD PRODUCT"
+            nameMax={L.projectName}
+            descriptionMax={L.projectDescription}
           />
         </Panel>
       </EditorShell>

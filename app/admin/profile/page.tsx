@@ -9,6 +9,9 @@ import {
 } from '@/services/api';
 import { useDebouncedDraft } from '@/hooks/use-debounced-draft';
 import FileField from '@/components/admin/FileField';
+import { LIMITS } from '@/lib/field-limits';
+
+const L = LIMITS.profile;
 import {
   PageHeader,
   Panel,
@@ -59,12 +62,12 @@ const ProfilePage: React.FC = () => {
   const set = (field: string, value: unknown) => setProfile({ ...profile, [field]: value });
 
   const IDENTITY_FIELDS = [
-    { key: 'name', label: 'FIRST NAME' },
-    { key: 'lastName', label: 'LAST NAME' },
-    { key: 'discipline', label: 'DISCIPLINE' },
-    { key: 'status', label: 'STATUS' },
-    { key: 'location', label: 'LOCATION' },
-    { key: 'email', label: 'CONTACT EMAIL' },
+    { key: 'name', label: 'FIRST NAME', max: L.name },
+    { key: 'lastName', label: 'LAST NAME', max: L.lastName },
+    { key: 'discipline', label: 'DISCIPLINE', max: L.discipline },
+    { key: 'status', label: 'STATUS', max: L.status },
+    { key: 'location', label: 'LOCATION', max: L.location },
+    { key: 'email', label: 'CONTACT EMAIL', max: L.email },
   ];
 
   /* ------------------------------------------------------ social links -- */
@@ -102,12 +105,17 @@ const ProfilePage: React.FC = () => {
       <Panel title="IDENTITY">
         <FormGrid>
           {IDENTITY_FIELDS.map((f) => (
-            <Field key={f.key} label={f.label}>
+            <Field key={f.key} label={f.label} max={f.max} value={profile[f.key] ?? ''}>
               <Input value={profile[f.key] ?? ''} onChange={(e) => set(f.key, e.target.value)} caps />
             </Field>
           ))}
 
-          <Field label="TELEGRAM HANDLE" hint={telegramVisible ? undefined : 'Hidden from the contact section'}>
+          <Field
+            label="TELEGRAM HANDLE"
+            hint={telegramVisible ? undefined : 'Hidden from the contact section'}
+            max={L.telegram}
+            value={profile.telegram ?? ''}
+          >
             <div className="flex gap-2">
               <Input
                 value={profile.telegram ?? ''}
@@ -125,7 +133,13 @@ const ProfilePage: React.FC = () => {
             </div>
           </Field>
 
-          <Field label="MANIFESTO LINE" wide hint="The large statement in the hero">
+          <Field
+            label="MANIFESTO LINE"
+            wide
+            hint="The large statement in the hero"
+            max={L.manifestoLine}
+            value={profile.manifestoLine ?? ''}
+          >
             <Textarea
               value={profile.manifestoLine ?? ''}
               onChange={(e) => set('manifestoLine', e.target.value)}
@@ -165,12 +179,14 @@ const ProfilePage: React.FC = () => {
                   onChange={(e) => updateLink(link._id, { platform: e.target.value.toUpperCase() })}
                   placeholder="PLATFORM"
                   caps
+                  maxLength={L.socialPlatform}
                   className="sm:w-40 shrink-0"
                 />
                 <Input
                   value={link.url ?? ''}
                   onChange={(e) => updateLink(link._id, { url: e.target.value })}
                   placeholder="https://"
+                  maxLength={L.url}
                   className="flex-1"
                 />
                 <div className="flex gap-1.5 shrink-0">
@@ -239,12 +255,14 @@ const ProfilePage: React.FC = () => {
                     onChange={(e) => updateResource(res._id, { label: e.target.value.toUpperCase() })}
                     placeholder="LABEL"
                     caps
+                    maxLength={L.footerLabel}
                     className="sm:w-52 shrink-0"
                   />
                   <Input
                     value={res.url ?? ''}
                     onChange={(e) => updateResource(res._id, { url: e.target.value })}
                     placeholder="OR PASTE A LINK"
+                    maxLength={L.url}
                     className="flex-1"
                   />
                   <Button

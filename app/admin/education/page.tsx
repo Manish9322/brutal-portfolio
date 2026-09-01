@@ -26,6 +26,9 @@ import {
   Loading,
 } from '@/components/admin/ui';
 import type { Education } from '@/types';
+import { LIMITS } from '@/lib/field-limits';
+
+const L = LIMITS.education;
 
 const EducationPage: React.FC = () => {
   const { data: education = [], isLoading } = useGetEducationQuery();
@@ -70,10 +73,10 @@ const EducationPage: React.FC = () => {
       >
         <Panel title="QUALIFICATION">
           <FormGrid>
-            <Field label="DEGREE / PROGRAM" wide>
+            <Field label="DEGREE / PROGRAM" wide max={L.degree} value={form.degree ?? ''}>
               <Input value={form.degree ?? ''} onChange={(e) => set({ degree: e.target.value })} />
             </Field>
-            <Field label="FIELD OF STUDY">
+            <Field label="FIELD OF STUDY" max={L.field} value={form.field ?? ''}>
               <Input value={form.field ?? ''} onChange={(e) => set({ field: e.target.value })} />
             </Field>
             <Field label="TYPE">
@@ -86,13 +89,13 @@ const EducationPage: React.FC = () => {
                 <option value="course">COURSE</option>
               </Select>
             </Field>
-            <Field label="INSTITUTION" wide>
+            <Field label="INSTITUTION" wide max={L.institution} value={form.institution ?? ''}>
               <Input value={form.institution ?? ''} onChange={(e) => set({ institution: e.target.value })} />
             </Field>
-            <Field label="LOCATION">
+            <Field label="LOCATION" max={L.location} value={form.location ?? ''}>
               <Input value={form.location ?? ''} onChange={(e) => set({ location: e.target.value })} />
             </Field>
-            <Field label="SCORE / GPA">
+            <Field label="SCORE / GPA" max={L.gpa} value={form.gpa ?? ''}>
               <Input value={form.gpa ?? ''} onChange={(e) => set({ gpa: e.target.value })} />
             </Field>
           </FormGrid>
@@ -100,24 +103,24 @@ const EducationPage: React.FC = () => {
 
         <Panel title="DATES" description="Start and end drive the timeline order on /education">
           <FormGrid>
-            <Field label="START" hint="YYYY-MM">
+            <Field label="START" hint="YYYY-MM" max={L.date} value={form.startDate ?? ''}>
               <Input
                 value={form.startDate ?? ''}
                 onChange={(e) => set({ startDate: e.target.value })}
                 placeholder="2023-08"
               />
             </Field>
-            <Field label="END" hint="YYYY-MM or Present">
+            <Field label="END" hint="YYYY-MM or Present" max={L.date} value={form.endDate ?? ''}>
               <Input
                 value={form.endDate ?? ''}
                 onChange={(e) => set({ endDate: e.target.value })}
                 placeholder="2025-06"
               />
             </Field>
-            <Field label="PERIOD LABEL" hint="Free text fallback">
+            <Field label="PERIOD LABEL" hint="Free text fallback" max={L.period} value={form.period ?? ''}>
               <Input value={form.period ?? ''} onChange={(e) => set({ period: e.target.value })} />
             </Field>
-            <Field label="YEAR">
+            <Field label="YEAR" max={L.year} value={form.year ?? ''}>
               <Input value={form.year ?? ''} onChange={(e) => set({ year: e.target.value })} />
             </Field>
           </FormGrid>
@@ -125,7 +128,7 @@ const EducationPage: React.FC = () => {
 
         <Panel title="DETAIL">
           <div className="space-y-4">
-            <Field label="DESCRIPTION">
+            <Field label="DESCRIPTION" max={L.description} value={form.description ?? ''}>
               <Textarea
                 value={form.description ?? ''}
                 onChange={(e) => set({ description: e.target.value })}
@@ -137,16 +140,17 @@ const EducationPage: React.FC = () => {
               value={form.achievements ?? []}
               onChange={(achievements) => set({ achievements })}
               placeholder="ADD AN ACHIEVEMENT..."
+              max={L.achievement}
             />
             <FormGrid>
-              <Field label="INSTITUTION WEBSITE">
+              <Field label="INSTITUTION WEBSITE" max={L.url} value={form.website ?? ''}>
                 <Input
                   value={form.website ?? ''}
                   onChange={(e) => set({ website: e.target.value })}
                   placeholder="https://"
                 />
               </Field>
-              <Field label="CERTIFICATE URL">
+              <Field label="CERTIFICATE URL" max={L.url} value={form.certificateUrl ?? ''}>
                 <Input
                   value={form.certificateUrl ?? ''}
                   onChange={(e) => set({ certificateUrl: e.target.value })}

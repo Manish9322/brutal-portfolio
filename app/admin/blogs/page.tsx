@@ -24,6 +24,9 @@ import {
   Loading,
 } from '@/components/admin/ui';
 import type { Blog } from '@/types';
+import { LIMITS } from '@/lib/field-limits';
+
+const L = LIMITS.blog;
 
 const slugify = (text: string) =>
   text.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
@@ -81,7 +84,7 @@ const BlogsPage: React.FC = () => {
       >
         <Panel title="POST">
           <FormGrid>
-            <Field label="TITLE" wide>
+            <Field label="TITLE" wide max={L.title} value={form.title ?? ''}>
               <Input
                 value={form.title ?? ''}
                 onChange={(e) => {
@@ -92,13 +95,13 @@ const BlogsPage: React.FC = () => {
                 }}
               />
             </Field>
-            <Field label="SLUG" hint="Used in the URL">
+            <Field label="SLUG" hint="Used in the URL" max={L.slug} value={form.slug ?? ''}>
               <Input value={form.slug ?? ''} onChange={(e) => set({ slug: slugify(e.target.value) })} />
             </Field>
-            <Field label="DATE" hint="YYYY-MM-DD">
+            <Field label="DATE" hint="YYYY-MM-DD" max={L.date} value={form.date ?? ''}>
               <Input value={form.date ?? ''} onChange={(e) => set({ date: e.target.value })} />
             </Field>
-            <Field label="EXCERPT" wide hint="Shown on the journal index">
+            <Field label="EXCERPT" wide hint="Shown on the journal index" max={L.excerpt} value={form.excerpt ?? ''}>
               <Textarea
                 value={form.excerpt ?? ''}
                 onChange={(e) => set({ excerpt: e.target.value })}
@@ -109,7 +112,7 @@ const BlogsPage: React.FC = () => {
         </Panel>
 
         <Panel title="CONTENT" description="Markdown: # heading, ## subheading, blank line for a break">
-          <Field label="BODY">
+          <Field label="BODY" max={L.content} value={form.content ?? ''}>
             <Textarea
               value={form.content ?? ''}
               onChange={(e) => set({ content: e.target.value })}

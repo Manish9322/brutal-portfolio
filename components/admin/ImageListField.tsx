@@ -4,6 +4,7 @@ import React, { useRef, useState } from 'react';
 import { useImageUpload } from '@/hooks/use-image-upload';
 import type { UploadModule } from '@/lib/cloudinary';
 import { cdn } from '@/lib/image-url';
+import { CharCount } from '@/components/admin/ui';
 
 export interface ImageListItem {
   _id?: string;
@@ -16,6 +17,8 @@ interface ImageListFieldProps {
   value: ImageListItem[];
   onChange: (items: ImageListItem[]) => void;
   module: UploadModule;
+  /** Character budget for each caption. */
+  captionMax?: number;
   className?: string;
 }
 
@@ -31,6 +34,7 @@ const ImageListField: React.FC<ImageListFieldProps> = ({
   value,
   onChange,
   module,
+  captionMax,
   className = '',
 }) => {
   const addInput = useRef<HTMLInputElement>(null);
@@ -146,8 +150,14 @@ const ImageListField: React.FC<ImageListFieldProps> = ({
                   value={item.caption ?? ''}
                   onChange={(e) => setCaption(index, e.target.value)}
                   placeholder="CAPTION"
+                  maxLength={captionMax}
                   className="w-full border-2 border-black p-2 font-bold text-sm outline-none focus:border-[#FF5F1F]"
                 />
+                {captionMax != null && (
+                  <div className="text-right">
+                    <CharCount length={(item.caption ?? '').length} max={captionMax} />
+                  </div>
+                )}
                 <div className="flex flex-wrap gap-2">
                   <button type="button" onClick={() => move(index, -1)} className="px-3 py-2 border-2 border-black text-xs font-black hover:bg-gray-100">↑</button>
                   <button type="button" onClick={() => move(index, 1)} className="px-3 py-2 border-2 border-black text-xs font-black hover:bg-gray-100">↓</button>

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Button, IconButton, Input, Label, Textarea } from './primitives';
+import { Button, CharCount, IconButton, Input, Label, Textarea } from './primitives';
 
 export interface NamedItem {
   _id?: string;
@@ -19,7 +19,18 @@ const NamedItemListField: React.FC<{
   onChange: (next: NamedItem[]) => void;
   namePlaceholder?: string;
   addLabel?: string;
-}> = ({ label, value, onChange, namePlaceholder = 'NAME', addLabel = 'ADD ENTRY' }) => {
+  /** Character budgets for the two sub-fields. */
+  nameMax?: number;
+  descriptionMax?: number;
+}> = ({
+  label,
+  value,
+  onChange,
+  namePlaceholder = 'NAME',
+  addLabel = 'ADD ENTRY',
+  nameMax,
+  descriptionMax,
+}) => {
   const items = value ?? [];
 
   const update = (index: number, patch: Partial<NamedItem>) =>
@@ -52,6 +63,7 @@ const NamedItemListField: React.FC<{
                   value={item.name}
                   onChange={(e) => update(index, { name: e.target.value })}
                   placeholder={namePlaceholder}
+                  maxLength={nameMax}
                   className="flex-1"
                 />
                 <IconButton aria-label="Move up" onClick={() => move(index, -1)} disabled={index === 0}>
@@ -73,7 +85,13 @@ const NamedItemListField: React.FC<{
                 onChange={(e) => update(index, { description: e.target.value })}
                 rows={2}
                 placeholder="DESCRIPTION"
+                maxLength={descriptionMax}
               />
+              {descriptionMax != null && (
+                <div className="text-right">
+                  <CharCount length={(item.description ?? '').length} max={descriptionMax} />
+                </div>
+              )}
             </div>
           ))}
         </div>

@@ -34,23 +34,84 @@ export const Hint: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 
 /* ----------------------------------------------------------------- field -- */
 
+/**
+ * `120/300` counter. Stays quiet until 90% of the budget is used, then darkens,
+ * then goes accent once the input refuses more characters — so the editor is
+ * warned before the limit bites rather than surprised by it.
+ */
+export const CharCount: React.FC<{ length: number; max: number }> = ({ length, max }) => (
+  <span
+    className={`shrink-0 text-[10px] font-black tabular-nums tracking-wider ${
+      length >= max ? 'text-[#FF5F1F]' : length >= max * 0.9 ? 'text-black/60' : 'text-black/25'
+    }`}
+  >
+    {length}/{max}
+  </span>
+);
+
 interface FieldProps {
   label: string;
   hint?: string;
   htmlFor?: string;
   /** Spans both columns inside a FormGrid. */
   wide?: boolean;
+  /** Character budget. Shows a counter and caps the control this wraps. */
+  max?: number;
+  /** Current text, used to drive the counter. Required alongside `max`. */
+  value?: string;
   children: React.ReactNode;
   className?: string;
 }
 
-export const Field: React.FC<FieldProps> = ({ label, hint, htmlFor, wide, children, className = '' }) => (
-  <div className={`space-y-1.5 ${wide ? 'sm:col-span-2' : ''} ${className}`}>
-    <Label htmlFor={htmlFor}>{label}</Label>
-    {children}
-    {hint && <Hint>{hint}</Hint>}
-  </div>
-);
+/**
+ * Injects `maxLength` into the first Input/Textarea in the tree.
+ *
+ * It walks rather than cloning the immediate child because a Field's control is
+ * not always its only child: the gallery category pairs an Input with a
+ * `<datalist>`, and the telegram handle sits in a flex row beside its Toggle.
+ */
+const withMaxLength = (node: React.ReactNode, max: number): React.ReactNode => {
+  let injected = false;
+  const walk = (n: React.ReactNode): React.ReactNode => {
+    if (injected || !React.isValidElement(n)) return n;
+    if (n.type === Input || n.type === Textarea) {
+      injected = true;
+      return React.cloneElement(n as React.ReactElement<{ maxLength?: number }>, { maxLength: max });
+    }
+    const kids = (n.props as { children?: React.ReactNode }).children;
+    if (kids == null) return n;
+    return React.cloneElement(n as React.ReactElement<{ children?: React.ReactNode }>, {
+      children: React.Children.map(kids, walk),
+    });
+  };
+  return React.Children.map(node, walk);
+};
+
+export const Field: React.FC<FieldProps> = ({
+  label,
+  hint,
+  htmlFor,
+  wide,
+  max,
+  value,
+  children,
+  className = '',
+}) => {
+  // maxLength is injected rather than passed at the call site so the number the
+  // counter shows and the number the browser enforces cannot drift apart.
+  const control = max != null ? withMaxLength(children, max) : children;
+
+  return (
+    <div className={`space-y-1.5 ${wide ? 'sm:col-span-2' : ''} ${className}`}>
+      <div className="flex items-baseline justify-between gap-3">
+        <Label htmlFor={htmlFor}>{label}</Label>
+        {max != null && <CharCount length={(value ?? '').length} max={max} />}
+      </div>
+      {control}
+      {hint && <Hint>{hint}</Hint>}
+    </div>
+  );
+};
 
 /* ---------------------------------------------------------------- inputs -- */
 

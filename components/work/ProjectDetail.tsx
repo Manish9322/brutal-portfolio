@@ -74,7 +74,9 @@ const ProjectDetail: React.FC<{ id: string }> = ({ id }) => {
         <span className="bg-[#FF5F1F] text-white px-4 py-2 font-black text-xs uppercase tracking-widest">
           {p.category}
         </span>
-        <h1 className="mt-6 text-3xl sm:text-4xl md:text-[7vw] font-black uppercase leading-[0.85] tracking-tighter break-words">
+        {/* The desktop title is 7vw with leading-[0.85], so its glyphs sit high
+            and swallow the gap — it needs more breathing room than small screens. */}
+        <h1 className="mt-6 md:mt-10 lg:mt-12 text-3xl sm:text-4xl md:text-[7vw] font-black uppercase leading-[0.85] tracking-tighter break-words">
           {p.title}
         </h1>
         <p className="mt-8 text-xl md:text-3xl font-bold uppercase leading-tight max-w-4xl opacity-70">

@@ -4,6 +4,9 @@ import React from 'react';
 import { useGetSeoQuery, useUpdateSeoMutation } from '@/services/api';
 import { useDebouncedDraft } from '@/hooks/use-debounced-draft';
 import ImageField from '@/components/admin/ImageField';
+import { LIMITS } from '@/lib/field-limits';
+
+const L = LIMITS.seo;
 import { PageHeader, Panel, Field, Input, Textarea, Loading, Badge } from '@/components/admin/ui';
 
 const SEOPage: React.FC = () => {
@@ -26,13 +29,20 @@ const SEOPage: React.FC = () => {
 
       <Panel title="SEARCH LISTING">
         <div className="space-y-4">
-          <Field label="META TITLE" hint={`${(seo.metaTitle ?? '').length} / 60 characters recommended`}>
+          <Field
+            label="META TITLE"
+            hint="Search results truncate past this"
+            max={L.metaTitle}
+            value={seo.metaTitle ?? ''}
+          >
             <Input value={seo.metaTitle ?? ''} onChange={(e) => set('metaTitle', e.target.value)} caps />
           </Field>
 
           <Field
             label="META DESCRIPTION"
-            hint={`${(seo.metaDescription ?? '').length} / 160 characters recommended`}
+            hint="Search results truncate past this"
+            max={L.metaDescription}
+            value={seo.metaDescription ?? ''}
           >
             <Textarea
               value={seo.metaDescription ?? ''}
@@ -41,7 +51,7 @@ const SEOPage: React.FC = () => {
             />
           </Field>
 
-          <Field label="KEYWORDS" hint="Comma separated">
+          <Field label="KEYWORDS" hint="Comma separated" max={L.keywords} value={keywords.join(', ')}>
             <Input
               value={keywords.join(', ')}
               onChange={(e) => set('keywords', e.target.value.split(',').map((s) => s.trim()))}

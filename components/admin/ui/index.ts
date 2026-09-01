@@ -1,6 +1,7 @@
 export {
   Label,
   Hint,
+  CharCount,
   Field,
   Input,
   Textarea,

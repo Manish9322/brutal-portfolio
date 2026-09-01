@@ -19,6 +19,9 @@ import {
   Badge,
 } from '@/components/admin/ui';
 import type { Skill } from '@/types';
+import { LIMITS } from '@/lib/field-limits';
+
+const L = LIMITS.skill;
 
 const SkillsPage: React.FC = () => {
   const { data: skills = [], isLoading } = useGetSkillsQuery();
@@ -83,7 +86,7 @@ const SkillsPage: React.FC = () => {
           </div>
 
           <div className="border-t-2 border-black p-3 space-y-2">
-            <Field label="NEW CATEGORY">
+            <Field label="NEW CATEGORY" max={L.category} value={newCategory}>
               <Input
                 value={newCategory}
                 onChange={(e) => setNewCategory(e.target.value)}
@@ -115,6 +118,7 @@ const SkillsPage: React.FC = () => {
                 onChange={(items) => updateSkill({ _id: active._id, items })}
                 placeholder="ADD A SKILL..."
                 caps
+                max={L.item}
                 hint="Homepage shows the first 5"
               />
             </Panel>

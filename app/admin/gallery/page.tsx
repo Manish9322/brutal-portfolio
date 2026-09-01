@@ -9,6 +9,9 @@ import {
   useUpdateGalleryOrderMutation,
 } from '@/services/api';
 import ImageField from '@/components/admin/ImageField';
+import { LIMITS } from '@/lib/field-limits';
+
+const L = LIMITS.gallery;
 import {
   PageHeader,
   Panel,
@@ -93,7 +96,7 @@ const GalleryPage: React.FC = () => {
 
           <Panel title="DETAILS">
             <div className="space-y-4">
-              <Field label="CAPTION">
+              <Field label="CAPTION" max={L.caption} value={form.caption ?? ''}>
                 <Textarea
                   value={form.caption ?? ''}
                   onChange={(e) => set({ caption: e.target.value })}
@@ -103,6 +106,8 @@ const GalleryPage: React.FC = () => {
               <Field
                 label="SET / CATEGORY"
                 hint={categories.length ? `Existing: ${categories.slice(0, 4).join(', ')}` : 'Groups frames into albums'}
+                max={L.category}
+                value={form.category ?? ''}
               >
                 <Input
                   value={form.category ?? ''}
@@ -115,7 +120,7 @@ const GalleryPage: React.FC = () => {
                   ))}
                 </datalist>
               </Field>
-              <Field label="DESCRIPTION" hint="Optional">
+              <Field label="DESCRIPTION" hint="Optional" max={L.description} value={form.description ?? ''}>
                 <Textarea
                   value={form.description ?? ''}
                   onChange={(e) => set({ description: e.target.value })}

@@ -30,6 +30,9 @@ import {
   Loading,
 } from '@/components/admin/ui';
 import type { Project } from '@/types';
+import { LIMITS } from '@/lib/field-limits';
+
+const L = LIMITS.project;
 
 const ProjectsPage: React.FC = () => {
   const { data: projects = [], isLoading } = useGetProjectsQuery();
@@ -95,25 +98,31 @@ const ProjectsPage: React.FC = () => {
       >
         <Panel title="BASICS">
           <FormGrid>
-            <Field label="TITLE" wide>
+            <Field label="TITLE" wide max={L.title} value={form.title ?? ''}>
               <Input value={form.title ?? ''} onChange={(e) => set({ title: e.target.value })} />
             </Field>
-            <Field label="CATEGORY" hint="Shown as the orange eyebrow">
+            <Field label="CATEGORY" hint="Shown as the orange eyebrow" max={L.category} value={form.category ?? ''}>
               <Input value={form.category ?? ''} onChange={(e) => set({ category: e.target.value })} />
             </Field>
-            <Field label="YEAR">
+            <Field label="YEAR" max={L.year} value={form.year ?? ''}>
               <Input value={form.year ?? ''} onChange={(e) => set({ year: e.target.value })} />
             </Field>
-            <Field label="ROLE">
+            <Field label="ROLE" max={L.role} value={form.role ?? ''}>
               <Input value={form.role ?? ''} onChange={(e) => set({ role: e.target.value })} />
             </Field>
-            <Field label="TEAM SIZE">
+            <Field label="TEAM SIZE" max={L.team} value={form.team ?? ''}>
               <Input value={form.team ?? ''} onChange={(e) => set({ team: e.target.value })} />
             </Field>
-            <Field label="TIMELINE" wide hint="E.g. June 2025 - July 2025">
+            <Field label="TIMELINE" wide hint="E.g. June 2025 - July 2025" max={L.timeline} value={form.timeline ?? ''}>
               <Input value={form.timeline ?? ''} onChange={(e) => set({ timeline: e.target.value })} />
             </Field>
-            <Field label="SHORT DESCRIPTION" wide hint="Used on the cards">
+            <Field
+              label="SHORT DESCRIPTION"
+              wide
+              hint="Used on the cards"
+              max={L.description}
+              value={form.description ?? ''}
+            >
               <Textarea
                 value={form.description ?? ''}
                 onChange={(e) => set({ description: e.target.value })}
@@ -134,21 +143,27 @@ const ProjectsPage: React.FC = () => {
 
         <Panel title="LINKS">
           <FormGrid>
-            <Field label="LIVE URL">
+            <Field label="LIVE URL" max={L.url} value={form.liveUrl ?? ''}>
               <Input
                 value={form.liveUrl ?? ''}
                 onChange={(e) => set({ liveUrl: e.target.value })}
                 placeholder="https://"
               />
             </Field>
-            <Field label="SOURCE URL">
+            <Field label="SOURCE URL" max={L.url} value={form.githubUrl ?? ''}>
               <Input
                 value={form.githubUrl ?? ''}
                 onChange={(e) => set({ githubUrl: e.target.value })}
                 placeholder="https://"
               />
             </Field>
-            <Field label="CARD LINK" wide hint="Where the card's link points if set">
+            <Field
+              label="CARD LINK"
+              wide
+              hint="Where the card's link points if set"
+              max={L.url}
+              value={form.link ?? ''}
+            >
               <Input value={form.link ?? ''} onChange={(e) => set({ link: e.target.value })} />
             </Field>
           </FormGrid>
@@ -156,7 +171,7 @@ const ProjectsPage: React.FC = () => {
 
         <Panel title="CASE STUDY" description="Shown on the project detail page">
           <div className="space-y-4">
-            <Field label="FULL DESCRIPTION">
+            <Field label="FULL DESCRIPTION" max={L.longDescription} value={form.longDescription ?? ''}>
               <Textarea
                 value={form.longDescription ?? ''}
                 onChange={(e) => set({ longDescription: e.target.value })}
@@ -169,6 +184,7 @@ const ProjectsPage: React.FC = () => {
               onChange={(techStack) => set({ techStack })}
               placeholder="ADD A TECHNOLOGY..."
               caps
+              max={L.techStack}
               hint="Cards show the first 5"
             />
             <StringListField
@@ -176,6 +192,7 @@ const ProjectsPage: React.FC = () => {
               value={form.challenges ?? []}
               onChange={(challenges) => set({ challenges })}
               placeholder="ADD A CHALLENGE..."
+              max={L.challenge}
               hint="Shown as FRICTION"
             />
             <StringListField
@@ -183,6 +200,7 @@ const ProjectsPage: React.FC = () => {
               value={form.solutions ?? []}
               onChange={(solutions) => set({ solutions })}
               placeholder="ADD A SOLUTION..."
+              max={L.solution}
               hint="Shown as RESOLUTION"
             />
           </div>
@@ -192,6 +210,7 @@ const ProjectsPage: React.FC = () => {
           <ImageListField
             label="CAPTURES"
             module="projects/screenshots"
+            captionMax={L.screenshotCaption}
             value={(form.screenshots ?? []) as any}
             onChange={(items) => set({ screenshots: items as Project['screenshots'] })}
           />

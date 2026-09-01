@@ -26,6 +26,9 @@ import {
   Loading,
 } from '@/components/admin/ui';
 import type { Testimonial } from '@/types';
+import { LIMITS } from '@/lib/field-limits';
+
+const L = LIMITS.testimonial;
 
 const TestimonialsPage: React.FC = () => {
   const { data: testimonials = [], isLoading } = useGetTestimonialsQuery();
@@ -88,7 +91,7 @@ const TestimonialsPage: React.FC = () => {
         }
       >
         <Panel title="QUOTE">
-          <Field label="TESTIMONIAL TEXT">
+          <Field label="TESTIMONIAL TEXT" max={L.quote} value={form.quote ?? ''}>
             <Textarea
               value={form.quote ?? ''}
               onChange={(e) => set({ quote: e.target.value.toUpperCase() })}
@@ -100,21 +103,21 @@ const TestimonialsPage: React.FC = () => {
 
         <Panel title="ATTRIBUTION">
           <FormGrid>
-            <Field label="AUTHOR">
+            <Field label="AUTHOR" max={L.author} value={form.author ?? ''}>
               <Input
                 value={form.author ?? ''}
                 onChange={(e) => set({ author: e.target.value.toUpperCase() })}
                 caps
               />
             </Field>
-            <Field label="ROLE / COMPANY">
+            <Field label="ROLE / COMPANY" max={L.role} value={form.role ?? ''}>
               <Input
                 value={form.role ?? ''}
                 onChange={(e) => set({ role: e.target.value.toUpperCase() })}
                 caps
               />
             </Field>
-            <Field label="RELATED PROJECT" wide hint="Optional">
+            <Field label="RELATED PROJECT" wide hint="Optional" max={L.projectRef} value={form.projectRef ?? ''}>
               <Input
                 value={form.projectRef ?? ''}
                 onChange={(e) => set({ projectRef: e.target.value.toUpperCase() })}

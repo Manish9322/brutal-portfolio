@@ -3,6 +3,9 @@
 import React, { useRef, useState } from 'react';
 import { useGetMediaQuery, useAddMediaMutation, useDeleteMediaMutation } from '@/services/api';
 import { useImageUpload } from '@/hooks/use-image-upload';
+import { LIMITS } from '@/lib/field-limits';
+
+const L = LIMITS.media;
 import {
   PageHeader,
   Panel,
@@ -130,14 +133,14 @@ const MediaPage: React.FC = () => {
           )}
 
           <FormGrid>
-            <Field label="ASSET URL" hint="Or paste a link directly">
+            <Field label="ASSET URL" hint="Or paste a link directly" max={L.url} value={draft.url ?? ''}>
               <Input
                 value={draft.url ?? ''}
                 onChange={(e) => setDraft({ ...draft, url: e.target.value })}
                 placeholder="https://"
               />
             </Field>
-            <Field label="LABEL">
+            <Field label="LABEL" max={L.label} value={draft.label ?? ''}>
               <Input
                 value={draft.label ?? ''}
                 onChange={(e) => setDraft({ ...draft, label: e.target.value })}
