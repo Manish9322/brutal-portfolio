@@ -9,14 +9,15 @@ const HeroSkeleton: React.FC = () => (
           sits on the bottom edge and nothing shifts when the profile lands. */}
       <div className="flex-1 flex flex-col justify-center px-6 md:px-12">
         <div className="relative z-10">
-          {/* Two lines of the oversized name */}
-          <div className="space-y-4 -ml-[1vw]">
-            <SkeletonBar className="h-[12vw] w-[70%]" />
-            <SkeletonBar className="h-[12vw] w-[55%]" />
+          {/* Two lines of the oversized name. The block is centred but the bars
+              start flush left inside it, mirroring HeroSection's w-fit mx-auto. */}
+          <div className="space-y-4 w-[70%] mx-auto">
+            <SkeletonBar className="h-[12vw] w-full" />
+            <SkeletonBar className="h-[12vw] w-[79%]" />
           </div>
 
           {/* Manifesto slab keeps its accent colour so the page still reads brutalist */}
-          <div className="absolute top-[40%] left-[5%] md:left-[20%] z-20 bg-[#FF5F1F]/30 p-4 md:p-8 border-4 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] max-w-2xl w-[80%] transform -rotate-2 animate-pulse">
+          <div className="absolute top-[40%] left-1/2 -translate-x-1/2 z-20 bg-[#FF5F1F]/30 p-4 md:p-8 border-4 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] max-w-2xl w-[90%] sm:w-[80%] -rotate-2 animate-pulse">
             <div className="space-y-3">
               <div className="h-6 w-full bg-white/40" />
               <div className="h-6 w-4/5 bg-white/40" />

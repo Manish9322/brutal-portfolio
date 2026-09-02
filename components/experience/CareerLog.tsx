@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import CtaLink from '@/components/CtaLink';
 import TopBar from '@/components/TopBar';
 import { useGetExperiencesQuery } from '@/services/api';
 import { sortExperience, experienceRange, isCurrent } from '@/lib/experience';
@@ -210,19 +211,13 @@ const CareerLog: React.FC = () => {
         </div>
       )}
 
-      <div className="p-8 md:p-16 flex flex-col md:flex-row gap-4 justify-center">
-        <Link
-          href="/"
-          className="text-center bg-black text-white px-12 py-6 text-lg font-black uppercase tracking-widest hover:bg-[#FF5F1F] transition-all"
-        >
+      <div className="p-6 sm:p-8 md:p-16 flex flex-col sm:flex-row gap-4 justify-center">
+        <CtaLink href="/" variant="primary" arrow="left">
           BACK_TO_SYSTEM_ROOT
-        </Link>
-        <Link
-          href="/#contact"
-          className="text-center border-4 border-black px-12 py-6 text-lg font-black uppercase tracking-widest hover:bg-black hover:text-white transition-all"
-        >
+        </CtaLink>
+        <CtaLink href="/#contact" variant="secondary" arrow="right">
           HIRE_ME
-        </Link>
+        </CtaLink>
       </div>
     </section>
   );

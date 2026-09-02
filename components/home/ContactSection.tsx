@@ -100,11 +100,15 @@ const ContactSection: React.FC = () => {
                 className="w-full bg-transparent border-b-4 border-white p-4 text-white text-2xl font-bold focus:outline-none focus:border-[#FF5F1F] placeholder:opacity-20 uppercase resize-none"
               ></textarea>
             </div>
+            {/* Sized like the other primary CTAs on the site: 4px border, hard
+                shadow on hover, and a type ramp instead of a fixed text-2xl,
+                which wrapped and overflowed its tracking at 375px. */}
             <button
               type="submit"
-              className="w-full bg-white text-black py-8 text-2xl font-black uppercase tracking-[0.2em] hover:bg-[#FF5F1F] hover:text-white transition-all transform hover:-translate-y-2 shadow-[0px_0px_0px_0px_#FF5F1F] hover:shadow-[12px_12px_0px_0px_rgba(255,255,255,1)]"
+              className="group w-full flex items-center justify-center gap-4 border-4 border-white bg-white text-black px-6 py-5 md:py-7 text-base sm:text-lg md:text-2xl font-black uppercase tracking-[0.15em] md:tracking-[0.2em] transition-all hover:bg-[#FF5F1F] hover:text-white hover:border-[#FF5F1F] hover:-translate-y-1 hover:shadow-[10px_10px_0px_0px_rgba(255,255,255,1)] motion-reduce:hover:translate-y-0"
             >
               SEND TRANSMISSION
+              <span className="transition-transform group-hover:translate-x-1">→</span>
             </button>
           </>
         )}

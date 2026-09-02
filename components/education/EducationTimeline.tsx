@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
+import CtaLink from '@/components/CtaLink';
 import TopBar from '@/components/TopBar';
 import { useGetEducationQuery } from '@/services/api';
 import { sortEducation, formatRange } from '@/lib/education';
@@ -58,11 +59,11 @@ const EducationTimeline: React.FC = () => {
         }
       />
 
-      <div className="p-8 md:p-24 border-b-4 border-black bg-black text-white">
-        <h1 className="font-heading font-bold text-4xl sm:text-5xl md:text-7xl lg:text-9xl uppercase leading-none tracking-tighter">
+      <div className="p-6 sm:p-8 md:p-24 border-b-4 border-black bg-black text-white">
+        <h1 className="font-heading font-bold text-3xl sm:text-5xl md:text-7xl lg:text-9xl uppercase leading-none tracking-tighter break-words">
           THE<br />RECORD
         </h1>
-        <p className="mt-4 text-xl font-bold text-[#FF5F1F] uppercase tracking-widest">
+        <p className="mt-3 sm:mt-4 text-xs sm:text-base md:text-xl font-bold text-[#FF5F1F] uppercase tracking-wider sm:tracking-widest">
           {counts.degree ?? 0} QUALIFICATIONS / {counts.certification ?? 0} CERTIFICATIONS
         </p>
       </div>
@@ -93,7 +94,7 @@ const EducationTimeline: React.FC = () => {
       {/* Timeline */}
       <div className="relative">
         {/* The spine: a hard vertical rule the entries hang off */}
-        <div className="absolute left-8 md:left-1/2 top-0 bottom-0 w-1 bg-black md:-translate-x-1/2" aria-hidden="true" />
+        <div className="absolute left-5 sm:left-8 md:left-1/2 top-0 bottom-0 w-1 bg-black md:-translate-x-1/2" aria-hidden="true" />
 
         {shown.map((item, idx) => {
           const isCert = item.type === 'certification';
@@ -102,12 +103,12 @@ const EducationTimeline: React.FC = () => {
           return (
             <article
               key={item._id}
-              className="relative pl-20 pr-6 md:px-0 py-10 md:py-16 md:grid md:grid-cols-2 md:gap-0"
+              className="relative pl-12 sm:pl-20 pr-4 sm:pr-6 md:px-0 py-8 sm:py-10 md:py-16 md:grid md:grid-cols-2 md:gap-0"
             >
               {/* Node marker on the spine */}
               <div
-                className={`absolute left-8 md:left-1/2 top-14 md:top-20 -translate-x-1/2 z-10 flex items-center justify-center
-                  w-8 h-8 border-4 border-black rotate-45 ${isCert ? 'bg-[#FF5F1F]' : 'bg-white'}`}
+                className={`absolute left-5 sm:left-8 md:left-1/2 top-12 sm:top-14 md:top-20 -translate-x-1/2 z-10 flex items-center justify-center
+                  w-6 h-6 sm:w-8 sm:h-8 border-4 border-black rotate-45 ${isCert ? 'bg-[#FF5F1F]' : 'bg-white'}`}
                 aria-hidden="true"
               />
 
@@ -134,7 +135,7 @@ const EducationTimeline: React.FC = () => {
               {/* Card */}
               <div className={onRight ? 'md:order-2' : 'md:order-1'}>
                 <div
-                  className={`border-4 border-black bg-white p-8 md:p-10 transition-all duration-300
+                  className={`border-4 border-black bg-white p-5 sm:p-8 md:p-10 transition-all duration-300
                     hover:-translate-y-1 hover:shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]
                     ${onRight ? 'md:ml-16' : 'md:mr-16'}`}
                 >
@@ -146,7 +147,7 @@ const EducationTimeline: React.FC = () => {
                     <span className="text-xs font-black uppercase opacity-60">{formatRange(item)}</span>
                   </div>
 
-                  <h2 className="text-2xl md:text-4xl font-black uppercase leading-none tracking-tighter">
+                  <h2 className="text-xl sm:text-2xl md:text-4xl font-black uppercase leading-none tracking-tighter break-words">
                     {item.degree}
                   </h2>
                   {item.field && (
@@ -154,12 +155,12 @@ const EducationTimeline: React.FC = () => {
                       {item.field}
                     </p>
                   )}
-                  <p className="mt-4 font-heading font-bold text-lg uppercase opacity-80 leading-tight">
+                  <p className="mt-4 font-heading font-bold text-base sm:text-lg uppercase opacity-80 leading-tight break-words">
                     {item.institution}
                   </p>
 
                   {item.description && (
-                    <p className="mt-6 text-base md:text-lg leading-relaxed opacity-70">
+                    <p className="mt-5 sm:mt-6 text-sm sm:text-base md:text-lg leading-relaxed opacity-70">
                       {item.description}
                     </p>
                   )}
@@ -222,8 +223,8 @@ const EducationTimeline: React.FC = () => {
 
         {/* Terminator */}
         {shown.length > 0 && (
-          <div className="relative pl-20 md:pl-0 pb-16 md:text-center">
-            <div className="absolute left-8 md:left-1/2 -translate-x-1/2 md:-translate-x-1/2 w-6 h-6 bg-black" aria-hidden="true" />
+          <div className="relative pl-12 sm:pl-20 md:pl-0 pb-16 md:text-center">
+            <div className="absolute left-5 sm:left-8 md:left-1/2 -translate-x-1/2 md:-translate-x-1/2 w-6 h-6 bg-black" aria-hidden="true" />
             <p className="pt-12 text-[10px] font-black uppercase tracking-[0.5em] opacity-30">
               START_OF_RECORD
             </p>
@@ -237,19 +238,13 @@ const EducationTimeline: React.FC = () => {
         </div>
       )}
 
-      <div className="p-8 md:p-16 border-t-4 border-black flex flex-col md:flex-row gap-4 justify-center">
-        <Link
-          href="/"
-          className="text-center bg-black text-white px-12 py-6 text-lg font-black uppercase tracking-widest hover:bg-[#FF5F1F] transition-all"
-        >
+      <div className="p-6 sm:p-8 md:p-16 border-t-4 border-black flex flex-col sm:flex-row gap-4 justify-center">
+        <CtaLink href="/" variant="primary" arrow="left">
           BACK_TO_SYSTEM_ROOT
-        </Link>
-        <Link
-          href="/#contact"
-          className="text-center border-4 border-black px-12 py-6 text-lg font-black uppercase tracking-widest hover:bg-black hover:text-white transition-all"
-        >
+        </CtaLink>
+        <CtaLink href="/#contact" variant="secondary" arrow="right">
           GET_IN_TOUCH
-        </Link>
+        </CtaLink>
       </div>
     </section>
   );

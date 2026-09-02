@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import HeroV2 from '@/components/ideas/HeroV2';
+import HeroV3 from '@/components/ideas/HeroV3';
 
 export const metadata = {
   title: 'IDEAS | BRUTALIST PORTFOLIO',
@@ -10,13 +10,13 @@ export default function IdeasPage() {
   return (
     <div className="min-h-screen bg-white selection:bg-[#FF5F1F] selection:text-white">
       <div className="max-w-[1800px] mx-auto border-x-4 border-black bg-white">
-        <HeroV2 />
+        <HeroV3 />
 
         {/* Marker sits in the flow, not fixed: pinned to a corner it covered the
             meta strip, which runs the full width of the hero's bottom edge. */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 md:px-12 py-6 bg-black text-white">
           <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/50">
-            IDEA 01 · HERO REWORK · NOT LIVE
+            IDEA · HERO REWORK · NOT LIVE
           </span>
           <Link
             href="/"

@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
+import CtaLink from '@/components/CtaLink';
 import TopBar, { TOP_BAR_OFFSET } from '@/components/TopBar';
 import { useGetGalleryQuery } from '@/services/api';
 import { sortGallery, groupByCategory, tileSpan } from '@/lib/gallery';
@@ -52,7 +53,7 @@ const GalleryWall: React.FC = () => {
         }
       />
 
-      <div className="p-8 md:p-24 border-b-4 border-black bg-black text-white relative overflow-hidden">
+      <div className="p-6 sm:p-8 md:p-24 border-b-4 border-black bg-black text-white relative overflow-hidden">
         <div
           className="absolute inset-0 opacity-[0.06] pointer-events-none"
           style={{
@@ -61,10 +62,12 @@ const GalleryWall: React.FC = () => {
             backgroundSize: '40px 40px',
           }}
         />
-        <h1 className="relative font-heading font-bold text-4xl sm:text-5xl md:text-7xl lg:text-9xl uppercase leading-none tracking-tighter">
+        <h1 className="relative font-heading font-bold text-3xl sm:text-5xl md:text-7xl lg:text-9xl uppercase leading-none tracking-tighter break-words">
           BEHIND<br />THE SCENES
         </h1>
-        <p className="relative mt-4 text-xl font-bold text-[#FF5F1F] uppercase tracking-widest">
+        {/* The count is a fixed text-xl with wide tracking, which ran past the
+            viewport on a phone. It steps down and loses tracking there. */}
+        <p className="relative mt-3 sm:mt-4 text-xs sm:text-base md:text-xl font-bold text-[#FF5F1F] uppercase tracking-wider sm:tracking-widest">
           {visible.length} FRAMES ACROSS {albums.length} SETS
         </p>
       </div>
@@ -95,11 +98,14 @@ const GalleryWall: React.FC = () => {
       {shownAlbums.map((album) => (
         <div key={album.category}>
           {/* Album header strip */}
-          <div className="border-b-4 border-black px-8 py-6 flex items-baseline justify-between gap-6 bg-gray-50">
-            <h2 className="font-heading font-bold text-2xl md:text-4xl uppercase tracking-tighter leading-none">
+          {/* The count is whitespace-nowrap, so the title needs min-w-0 to be
+              allowed to shrink — without it a long album name pushed the count
+              past the viewport and scrolled the whole page at 375px. */}
+          <div className="border-b-4 border-black px-5 sm:px-8 py-5 sm:py-6 flex items-baseline justify-between gap-3 sm:gap-6 bg-gray-50">
+            <h2 className="min-w-0 font-heading font-bold text-xl sm:text-2xl md:text-4xl uppercase tracking-tighter leading-none break-words">
               {album.category}
             </h2>
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40 whitespace-nowrap">
+            <span className="shrink-0 text-[10px] font-black uppercase tracking-widest sm:tracking-[0.3em] opacity-40 whitespace-nowrap">
               {album.items.length} FRAME{album.items.length === 1 ? '' : 'S'}
             </span>
           </div>
@@ -149,19 +155,13 @@ const GalleryWall: React.FC = () => {
         </div>
       )}
 
-      <div className="p-8 md:p-16 flex flex-col md:flex-row gap-4 justify-center">
-        <Link
-          href="/"
-          className="text-center bg-black text-white px-12 py-6 text-lg font-black uppercase tracking-widest hover:bg-[#FF5F1F] transition-all"
-        >
+      <div className="p-6 sm:p-8 md:p-16 flex flex-col sm:flex-row gap-4 justify-center">
+        <CtaLink href="/" variant="primary" arrow="left">
           BACK_TO_SYSTEM_ROOT
-        </Link>
-        <Link
-          href="/work"
-          className="text-center border-4 border-black px-12 py-6 text-lg font-black uppercase tracking-widest hover:bg-black hover:text-white transition-all"
-        >
+        </CtaLink>
+        <CtaLink href="/work" variant="secondary" arrow="right">
           SEE_THE_WORK
-        </Link>
+        </CtaLink>
       </div>
 
       {lightboxIndex !== null && shown[lightboxIndex] && (

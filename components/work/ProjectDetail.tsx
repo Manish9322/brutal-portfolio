@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useGetProjectQuery, useGetProjectsQuery } from '@/services/api';
 import { sortProjects } from '@/lib/projects';
@@ -8,12 +8,15 @@ import ProjectImage from '@/components/ProjectImage';
 import TopBar from '@/components/TopBar';
 import type { Project } from '@/types';
 import { cdn, cdnSrcSet } from '@/lib/image-url';
+import Lightbox, { type LightboxItem } from '@/components/gallery/Lightbox';
+import CtaLink from '@/components/CtaLink';
 
 const isUrl = (v?: string) => !!v && /^https?:\/\//i.test(v);
 
 const ProjectDetail: React.FC<{ id: string }> = ({ id }) => {
   const { data: project, isLoading, isError } = useGetProjectQuery(id);
   const { data: allProjects = [] } = useGetProjectsQuery();
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
   if (isLoading) {
     return (
@@ -48,6 +51,20 @@ const ProjectDetail: React.FC<{ id: string }> = ({ id }) => {
   ].filter((m) => m.value);
 
   const screenshots = (p.screenshots || []).filter((s) => isUrl(s.url));
+
+  /**
+   * What the viewer walks through: the cover first, then every capture, so the
+   * arrows move through the whole project rather than the grid alone.
+   */
+  const viewerItems: LightboxItem[] = [
+    ...(isUrl(p.image) ? [{ url: p.image as string, caption: p.title, category: 'COVER' }] : []),
+    ...screenshots.map((shot, i) => ({
+      url: shot.url,
+      caption: shot.caption || `${p.title} — capture ${i + 1}`,
+      category: p.category,
+    })),
+  ];
+  const captureOffset = isUrl(p.image) ? 1 : 0;
 
   return (
     <article className="min-h-screen bg-white selection:bg-black selection:text-[#FF5F1F]">
@@ -101,16 +118,34 @@ const ProjectDetail: React.FC<{ id: string }> = ({ id }) => {
         </div>
       )}
 
-      {/* Hero image */}
-      <div className="border-b-4 border-black bg-gray-100 h-[40vh] md:h-[60vh]">
-        <ProjectImage
-          src={p.image}
-          alt={p.title}
-          label={p.title}
-          width={1400}
-          priority
-          className="w-full h-full object-cover"
-        />
+      {/* Hero image. object-contain, not cover: the banner is the project's own
+          composition and cropping it to a fixed 40/60vh box was cutting the
+          sides off. The hatched ground fills whatever letterboxing is left. */}
+      <div className="border-b-4 border-black bg-gray-100 relative group">
+        {isUrl(p.image) ? (
+          <button
+            type="button"
+            onClick={() => setViewerIndex(0)}
+            aria-label={`View ${p.title} cover full size`}
+            className="block w-full h-[35vh] sm:h-[45vh] md:h-[60vh] cursor-zoom-in"
+          >
+            <ProjectImage
+              src={p.image}
+              alt={p.title}
+              label={p.title}
+              width={1600}
+              priority
+              className="w-full h-full object-contain"
+            />
+            <span className="absolute bottom-4 right-4 border-4 border-black bg-white px-3 py-1.5 text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+              EXPAND ⤢
+            </span>
+          </button>
+        ) : (
+          <div className="h-[35vh] sm:h-[45vh] md:h-[60vh]">
+            <ProjectImage src={p.image} alt={p.title} label={p.title} width={1600} priority className="w-full h-full object-contain" />
+          </div>
+        )}
       </div>
 
       {/* Links + stack */}
@@ -222,7 +257,12 @@ const ProjectDetail: React.FC<{ id: string }> = ({ id }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 divide-y-4 md:divide-y-0 md:divide-x-4 divide-black">
             {screenshots.map((shot, i) => (
               <figure key={shot._id ?? i} className="group flex flex-col">
-                <div className="relative aspect-video overflow-hidden border-b-4 border-black bg-gray-100">
+                <button
+                  type="button"
+                  onClick={() => setViewerIndex(captureOffset + i)}
+                  aria-label={`View capture ${i + 1} full size`}
+                  className="relative aspect-video overflow-hidden border-b-4 border-black bg-gray-100 cursor-zoom-in"
+                >
                   <img
                     src={cdn(shot.url, { width: 900 })}
                     srcSet={cdnSrcSet(shot.url, 900)}
@@ -231,7 +271,10 @@ const ProjectDetail: React.FC<{ id: string }> = ({ id }) => {
                     decoding="async"
                     className="w-full h-full object-cover filter grayscale group-hover:grayscale-0 transition-all duration-500"
                   />
-                </div>
+                  <span className="absolute bottom-3 right-3 border-4 border-black bg-white px-3 py-1.5 text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                    EXPAND ⤢
+                  </span>
+                </button>
                 <figcaption className="p-6 font-black uppercase text-sm tracking-tighter group-hover:bg-[#FF5F1F] group-hover:text-white transition-colors flex-1">
                   <span className="text-[10px] opacity-40 block mb-1">CAPTURE_{String(i + 1).padStart(2, '0')}</span>
                   {shot.caption || p.title}
@@ -266,20 +309,25 @@ const ProjectDetail: React.FC<{ id: string }> = ({ id }) => {
         )}
       </nav>
 
-      <div className="p-8 md:p-16 flex flex-col md:flex-row gap-4 justify-center">
-        <Link
-          href="/work"
-          className="text-center bg-black text-white px-12 py-6 text-lg font-black uppercase tracking-widest hover:bg-[#FF5F1F] transition-all"
-        >
+      {/* Both CTAs share the site's primary-button shape: 4px border, a type
+          ramp rather than a fixed text-lg, and tracking that eases off on
+          narrow screens where the underscored labels used to overflow. */}
+      <div className="p-6 sm:p-8 md:p-16 flex flex-col sm:flex-row gap-4 justify-center">
+        <CtaLink href="/work" variant="primary" arrow="left">
           BACK_TO_ALL_WORKS
-        </Link>
-        <Link
-          href="/#contact"
-          className="text-center border-4 border-black px-12 py-6 text-lg font-black uppercase tracking-widest hover:bg-black hover:text-white transition-all"
-        >
+        </CtaLink>
+        <CtaLink href="/#contact" variant="secondary" arrow="right">
           START_A_PROJECT
-        </Link>
+        </CtaLink>
       </div>
+      {viewerIndex !== null && viewerItems[viewerIndex] && (
+        <Lightbox
+          items={viewerItems}
+          index={viewerIndex}
+          onClose={() => setViewerIndex(null)}
+          onNavigate={setViewerIndex}
+        />
+      )}
     </article>
   );
 };

@@ -1,11 +1,22 @@
 'use client';
 
 import React, { useCallback, useEffect } from 'react';
-import type { GalleryItem } from '@/types';
 import { cdn } from '@/lib/image-url';
 
+/**
+ * The minimum an item needs to be viewable. Kept structural rather than tied to
+ * GalleryItem so project screenshots can go through the same viewer — a
+ * GalleryItem satisfies this shape as-is.
+ */
+export interface LightboxItem {
+  url: string;
+  caption?: string;
+  /** Eyebrow above the caption: an album on /gallery, the project on /work. */
+  category?: string;
+}
+
 interface LightboxProps {
-  items: GalleryItem[];
+  items: LightboxItem[];
   index: number;
   onClose: () => void;
   onNavigate: (nextIndex: number) => void;
@@ -81,7 +92,7 @@ const Lightbox: React.FC<LightboxProps> = ({ items, index, onClose, onNavigate }
       <div className="flex-1 flex items-center justify-center p-4 md:p-10 min-h-0">
         <img
           src={cdn(item.url, { width: 1600 })}
-          alt={item.caption}
+          alt={item.caption ?? ''}
           onClick={(e) => e.stopPropagation()}
           decoding="async"
           className="max-h-full max-w-full object-contain border-4 border-white"

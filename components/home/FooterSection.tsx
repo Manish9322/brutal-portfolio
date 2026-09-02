@@ -42,7 +42,7 @@ const FooterSection: React.FC = () => {
              BUILT ON RIGID GRIDS AND CLEAN LOGIC. NO FLUFF.
            </p>
            <div className="text-[10px] font-black uppercase tracking-widest opacity-40">
-             © {new Date().getFullYear()} {profile?.name ?? ''} {profile?.lastName ?? ''}. ALL RIGHTS RESERVED. DESIGN BY {profile?.name ?? ''}.
+             © {new Date().getFullYear()} {profile?.name ?? ''} {profile?.lastName ?? ''}. ALL RIGHTS RESERVED.
            </div>
         </div>
       </div>

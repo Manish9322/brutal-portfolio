@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import CtaLink from '@/components/CtaLink';
 import TopBar from '@/components/TopBar';
 import { useGetBlogsQuery, useGetProfileQuery } from '@/services/api';
 import type { Blog } from '@/types';
@@ -92,18 +93,12 @@ const BlogPostView: React.FC<BlogPostViewProps> = ({ slug }) => {
             <p className="text-lg font-bold uppercase opacity-60">{profile?.discipline ?? ''}</p>
           </div>
           <div className="flex flex-col w-full md:w-auto gap-4">
-            <Link
-              href="/journal"
-              className="w-full md:w-auto text-center bg-black text-white px-16 py-8 text-2xl font-black uppercase tracking-widest hover:bg-[#FF5F1F] transition-all"
-            >
+            <CtaLink href="/journal" variant="primary" arrow="left">
               BACK_TO_LOG_INDEX
-            </Link>
-            <Link
-              href="/"
-              className="w-full md:w-auto text-center border-4 border-black px-16 py-4 text-sm font-black uppercase tracking-widest hover:bg-black hover:text-white transition-all"
-            >
+            </CtaLink>
+            <CtaLink href="/" variant="secondary" arrow="right">
               SYSTEM_REBOOT (HOME)
-            </Link>
+            </CtaLink>
           </div>
         </div>
       </div>

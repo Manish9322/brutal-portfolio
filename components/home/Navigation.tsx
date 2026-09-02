@@ -6,13 +6,15 @@ import { usePathname } from 'next/navigation';
 import { useGetProfileQuery } from '@/services/api';
 import { TOP_BAR_HEIGHT } from '@/components/TopBar';
 
-const LINKS = [
+/** `isSpecial` is annotated rather than inferred so commenting an entry in or
+ *  out (the ADMIN link) does not change the array's type. */
+const LINKS: { name: string; href: string; isSpecial?: boolean }[] = [
   { name: 'WORK', href: '/#work' },
   { name: 'JOURNAL', href: '/journal' },
   { name: 'EDUCATION', href: '/education' },
   { name: 'SKILLS', href: '/#skills' },
   { name: 'CONTACT', href: '/#contact' },
-  { name: 'ADMIN', href: '/admin', isSpecial: true },
+  // { name: 'ADMIN', href: '/admin', isSpecial: true },
 ];
 
 const Navigation: React.FC = () => {
