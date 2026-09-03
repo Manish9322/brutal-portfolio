@@ -4,6 +4,7 @@ import React, { useId, useRef, useState } from 'react';
 import { useImageUpload } from '@/hooks/use-image-upload';
 import type { UploadModule } from '@/lib/cloudinary';
 import { cdn } from '@/lib/image-url';
+import ConfirmDialog from '@/components/admin/ui/ConfirmDialog';
 
 interface ImageFieldProps {
   label: string;
@@ -41,6 +42,7 @@ const ImageField: React.FC<ImageFieldProps> = ({
   const { uploadImage, deleteImage, isUploading, error, clearError } = useImageUpload(module);
   const [isDragging, setIsDragging] = useState(false);
   const [showUrl, setShowUrl] = useState(false);
+  const [confirmingRemove, setConfirmingRemove] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
 
   const handleFile = async (file?: File | null) => {
@@ -63,7 +65,7 @@ const ImageField: React.FC<ImageFieldProps> = ({
 
   const handleRemove = async () => {
     if (!value) return;
-    if (!window.confirm('REMOVE_IMAGE?')) return;
+    setConfirmingRemove(false);
     const target = value;
     onChange('');
     setNotice(null);
@@ -131,7 +133,7 @@ const ImageField: React.FC<ImageFieldProps> = ({
             </button>
             <button
               type="button"
-              onClick={handleRemove}
+              onClick={() => setConfirmingRemove(true)}
               disabled={isUploading}
               className="flex-1 p-2.5 font-black uppercase text-[10px] tracking-widest text-red-600 hover:bg-red-500 hover:text-white transition-colors disabled:opacity-40"
             >
@@ -188,6 +190,21 @@ const ImageField: React.FC<ImageFieldProps> = ({
       {notice && !error && (
         <p className="text-[10px] font-black uppercase tracking-widest opacity-40">{notice}</p>
       )}
+
+      <ConfirmDialog
+        open={confirmingRemove}
+        title={`REMOVE ${label}?`}
+        previewUrl={value ? cdn(value, { width: 400 }) : undefined}
+        message={
+          <>
+            This deletes the file from Cloudinary straight away — before the record is saved, so
+            cancelling the editor afterwards will not bring it back.
+          </>
+        }
+        confirmLabel="REMOVE"
+        onConfirm={handleRemove}
+        onCancel={() => setConfirmingRemove(false)}
+      />
     </div>
   );
 };

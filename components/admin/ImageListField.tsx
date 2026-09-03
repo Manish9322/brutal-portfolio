@@ -5,6 +5,7 @@ import { useImageUpload } from '@/hooks/use-image-upload';
 import type { UploadModule } from '@/lib/cloudinary';
 import { cdn } from '@/lib/image-url';
 import { CharCount } from '@/components/admin/ui';
+import ConfirmDialog from '@/components/admin/ui/ConfirmDialog';
 
 export interface ImageListItem {
   _id?: string;
@@ -40,6 +41,7 @@ const ImageListField: React.FC<ImageListFieldProps> = ({
   const addInput = useRef<HTMLInputElement>(null);
   const replaceInput = useRef<HTMLInputElement>(null);
   const [replacingIndex, setReplacingIndex] = useState<number | null>(null);
+  const [confirmIndex, setConfirmIndex] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const { uploadImage, deleteImage, isUploading, error, clearError } = useImageUpload(module);
 
@@ -76,7 +78,7 @@ const ImageListField: React.FC<ImageListFieldProps> = ({
   };
 
   const removeAt = async (index: number) => {
-    if (!window.confirm('REMOVE_SCREENSHOT?')) return;
+    setConfirmIndex(null);
     const target = items[index]?.url;
     onChange(items.filter((_, i) => i !== index));
     if (target) await deleteImage(target);
@@ -174,7 +176,7 @@ const ImageListField: React.FC<ImageListFieldProps> = ({
                   </button>
                   <button
                     type="button"
-                    onClick={() => removeAt(index)}
+                    onClick={() => setConfirmIndex(index)}
                     disabled={isUploading}
                     className="px-4 py-2 border-2 border-black text-xs font-black uppercase tracking-widest text-red-600 hover:bg-red-500 hover:text-white disabled:opacity-40"
                   >
@@ -213,6 +215,28 @@ const ImageListField: React.FC<ImageListFieldProps> = ({
       </div>
 
       {error && <p className="text-[10px] font-black uppercase tracking-widest text-red-600">{error}</p>}
+
+      <ConfirmDialog
+        open={confirmIndex !== null}
+        title={`REMOVE CAPTURE ${confirmIndex !== null ? String(confirmIndex + 1).padStart(2, '0') : ''}?`}
+        previewUrl={
+          confirmIndex !== null && items[confirmIndex]?.url
+            ? cdn(items[confirmIndex].url, { width: 400 })
+            : undefined
+        }
+        message={
+          <>
+            {confirmIndex !== null && items[confirmIndex]?.caption ? (
+              <span className="block mb-1 text-black/80">&ldquo;{items[confirmIndex].caption}&rdquo;</span>
+            ) : null}
+            This deletes the file from Cloudinary straight away — before the record is saved, so
+            cancelling the editor afterwards will not bring it back.
+          </>
+        }
+        confirmLabel="REMOVE"
+        onConfirm={() => confirmIndex !== null && removeAt(confirmIndex)}
+        onCancel={() => setConfirmIndex(null)}
+      />
     </div>
   );
 };

@@ -25,6 +25,7 @@ export {
   MetricRow,
 } from './layout';
 
+export { default as ConfirmDialog } from './ConfirmDialog';
 export { default as StringListField } from './StringListField';
 export { default as NamedItemListField } from './NamedItemListField';
 export type { NamedItem } from './NamedItemListField';

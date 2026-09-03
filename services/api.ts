@@ -19,6 +19,29 @@ export const portfolioApi = createApi({
     'Media',
   ],
   endpoints: (builder) => ({
+    // ======================================== STATS ========================================== //
+
+    /**
+     * Aggregate counts for /admin/analytics, computed in Mongo.
+     *
+     * Invalidated by every content tag so editing a project or reading a
+     * message refreshes the figures without a manual reload.
+     */
+    getAdminStats: builder.query<any, void>({
+      query: () => '/admin/stats',
+      providesTags: [
+        'Projects',
+        'Blog',
+        'Gallery',
+        'Messages',
+        'Experience',
+        'Education',
+        'Testimonials',
+        'Skills',
+        'Media',
+      ],
+    }),
+
     // ======================================== PROFILE ======================================== //
 
     getProfile: builder.query<any, void>({
@@ -442,6 +465,7 @@ export const portfolioApi = createApi({
 });
 
 export const {
+  useGetAdminStatsQuery,
   useGetProfileQuery,
   useUpdateProfileMutation,
   useGetAboutQuery,
