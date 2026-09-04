@@ -1,8 +1,39 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolkit/query';
+
+const rawBaseQuery = fetchBaseQuery({ baseUrl: '/api' });
+
+/**
+ * Retries failed reads, twice, with a short backoff.
+ *
+ * A read that fails once is left permanently empty otherwise — RTK Query does
+ * not retry on its own — so a single hiccup on a cold serverless start used to
+ * leave a section blank until the visitor reloaded the page.
+ *
+ * Reads only. A retried POST or DELETE could duplicate or repeat a write, so
+ * anything that is not a GET is passed straight through.
+ */
+const baseQueryWithRetry: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> = async (
+  args,
+  api,
+  extraOptions
+) => {
+  const method = typeof args === 'string' ? 'GET' : (args.method ?? 'GET');
+  let result = await rawBaseQuery(args, api, extraOptions);
+
+  if (method.toUpperCase() !== 'GET') return result;
+
+  for (let attempt = 1; attempt <= 2 && result.error; attempt++) {
+    await new Promise((resolve) => setTimeout(resolve, 400 * attempt));
+    result = await rawBaseQuery(args, api, extraOptions);
+  }
+
+  return result;
+};
 
 export const portfolioApi = createApi({
   reducerPath: 'portfolioApi',
-  baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
+  baseQuery: baseQueryWithRetry,
   tagTypes: [
     'Profile',
     'About',
