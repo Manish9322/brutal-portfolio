@@ -1,16 +1,20 @@
+import { pageMetadata } from '@/lib/page-metadata';
 import Link from 'next/link';
 import HeroV3 from '@/components/ideas/HeroV3';
+import LoaderShowcase from '@/components/ideas/LoaderShowcase';
 
-export const metadata = {
-  title: 'IDEAS | BRUTALIST PORTFOLIO',
-  description: 'A scratch page for reworked sections before they land on the site.',
-};
+export const metadata = pageMetadata(
+  'IDEAS',
+  'A scratch page for reworked sections before they land on the site.'
+);
 
 export default function IdeasPage() {
   return (
     <div className="min-h-screen bg-white selection:bg-[#FF5F1F] selection:text-white">
       <div className="max-w-[1800px] mx-auto border-x-4 border-black bg-white">
         <HeroV3 />
+
+        <LoaderShowcase />
 
         {/* Marker sits in the flow, not fixed: pinned to a corner it covered the
             meta strip, which runs the full width of the hero's bottom edge. */}

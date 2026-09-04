@@ -4,6 +4,7 @@ import './globals.css';
 import { Providers } from '../utils/providers';
 import _db from '../utils/db';
 import SEO from '../models/SEO.model';
+import Profile from '../models/Profile.model';
 import { DEFAULT_SEO } from '../lib/seed-data';
 
 // Self-hosted at build time; exposed as CSS variables so globals.css can never
@@ -25,24 +26,45 @@ const syncopate = Syncopate({
 /**
  * SEO settings live in MongoDB and are edited from /admin/seo.
  * Falls back to the seeded defaults when the database is unreachable.
+ *
+ * The title is a template rather than a string: child pages supply only their
+ * own part ('ALL WORKS') and Next appends the owner's name, so the suffix is
+ * defined once here instead of being hardcoded into every page.
  */
 export async function generateMetadata(): Promise<Metadata> {
   let seo: any = DEFAULT_SEO;
+  let siteName = '';
 
   try {
     await _db();
-    const stored = await SEO.findOne({}).lean();
-    if (stored) seo = stored;
+    const [storedSeo, profile] = await Promise.all([
+      SEO.findOne({}).lean(),
+      Profile.findOne({}).select('name lastName').lean() as Promise<any>,
+    ]);
+    if (storedSeo) seo = storedSeo;
+    siteName = [profile?.name, profile?.lastName].filter(Boolean).join(' ').trim().toUpperCase();
   } catch {
     // Database not configured yet - fall through to the defaults.
   }
 
+  // Without a name the template would render 'ALL WORKS | ', so fall back to
+  // the site title the SEO record already carries.
+  const suffix = siteName || seo.metaTitle;
+
   return {
-    title: seo.metaTitle,
+    title: {
+      default: seo.metaTitle,
+      template: `%s | ${suffix}`,
+    },
     description: seo.metaDescription,
     keywords: seo.keywords,
     openGraph: {
-      title: seo.metaTitle,
+      // openGraph.title does not inherit the title template, so it carries its
+      // own — otherwise shared links would lose the name.
+      title: {
+        default: seo.metaTitle,
+        template: `%s | ${suffix}`,
+      },
       description: seo.metaDescription,
       images: seo.ogImage ? [seo.ogImage] : undefined,
     },
